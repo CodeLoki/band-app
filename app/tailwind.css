@@ -1,0 +1,8 @@
+/* Tailwind CSS v4 with DaisyUI */
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes:
+    dim,
+    dracula --default,
+    business;
+}

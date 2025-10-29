@@ -1,0 +1,50 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true,
+        "editor.formatOnType": false,
+        "editor.codeActionsOnSave": {
+            "quickfix.biome": "explicit",
+            "source.organizeImports.biome": "explicit",
+            "source.fixAll.biome": "explicit"
+        },
+        "editor.defaultFormatter": "biomejs.biome",
+        "[javascript]": {
+            "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[javascriptreact]": {
+            "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[typescript]": {
+            "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[typescriptreact]": {
+            "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[json]": {
+            "editor.defaultFormatter": "biomejs.biome"
+        },
+        "[jsonc]": {
+            "editor.defaultFormatter": "biomejs.biome"
+        },
+        "files.associations": {
+            "*.tsx": "typescriptreact",
+            "*.ts": "typescript"
+        },
+        "typescript.preferences.includePackageJsonAutoImports": "auto",
+        "cSpell.words": ["firestore", "Songsterr"]
+    },
+    "extensions": {
+        "recommendations": [
+            "biomejs.biome",
+            "ms-vscode.vscode-typescript-next",
+            "bradlc.vscode-tailwindcss",
+            "ms-vscode.vscode-json"
+        ]
+    }
+}
