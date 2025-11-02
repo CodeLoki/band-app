@@ -27,7 +27,7 @@ const router = createBrowserRouter([
                 element: <EditSong />
             },
             {
-                path: 'rehearse-song/:songId',
+                path: 'rehearse/:songId',
                 element: <RehearseSong />
             },
             {
