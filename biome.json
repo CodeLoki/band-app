@@ -1,0 +1,89 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.3.1/schema.json",
+    "vcs": {
+        "enabled": true,
+        "clientKind": "git",
+        "useIgnoreFile": true
+    },
+    "files": {
+        "ignoreUnknown": false
+    },
+    "formatter": {
+        "enabled": true,
+        "formatWithErrors": false,
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineEnding": "lf",
+        "lineWidth": 120,
+        "attributePosition": "auto"
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "a11y": {
+                "recommended": true,
+                "noSvgWithoutTitle": "off"
+            },
+            "complexity": {
+                "recommended": true
+            },
+            "correctness": {
+                "recommended": true,
+                "noEmptyPattern": "off"
+            },
+            "nursery": {
+                "recommended": true
+            },
+            "performance": {
+                "recommended": true
+            },
+            "security": {
+                "recommended": true
+            },
+            "style": {
+                "recommended": true
+            },
+            "suspicious": {
+                "recommended": true,
+                "noUnknownAtRules": "off",
+                "noDebugger": "off"
+            }
+        }
+    },
+    "javascript": {
+        "formatter": {
+            "jsxQuoteStyle": "double",
+            "quoteProperties": "asNeeded",
+            "trailingCommas": "none",
+            "semicolons": "always",
+            "arrowParentheses": "always",
+            "bracketSpacing": true,
+            "bracketSameLine": false,
+            "quoteStyle": "single",
+            "attributePosition": "auto"
+        }
+    },
+    "json": {
+        "formatter": {
+            "enabled": true,
+            "trailingCommas": "none"
+        }
+    },
+    "css": {
+        "parser": {
+            "tailwindDirectives": true
+        },
+        "linter": {
+            "enabled": false
+        }
+    },
+    "assist": {
+        "enabled": true,
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    }
+}

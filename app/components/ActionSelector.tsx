@@ -1,101 +1,84 @@
-import { type MouseEvent, useEffect, useState } from "react";
-import {
-	LuDrum,
-	LuFlag,
-	LuMonitorPlay,
-	LuMusic,
-	LuSquareX,
-} from "react-icons/lu";
-import { ActionMode, useActionContext } from "@/contexts/ActionContext";
-import { useFirestore } from "@/contexts/Firestore";
+import { type MouseEvent, useEffect, useState } from 'react';
+import { LuDrum, LuFilePen, LuFlag, LuMonitorPlay, LuMusic, LuSquareX } from 'react-icons/lu';
+import { ActionMode, useActionContext } from '@/contexts/ActionContext';
+import { useFirestore } from '@/contexts/Firestore';
 
 function getIcon(mode: ActionMode) {
-	switch (mode) {
-		case ActionMode.Practice:
-			return <LuMusic />;
-		case ActionMode.Rehearse:
-			return <LuMonitorPlay />;
-		case ActionMode.Flag:
-			return <LuFlag />;
-		default:
-			return <LuDrum />;
-	}
+    switch (mode) {
+        case ActionMode.Practice:
+            return <LuMusic />;
+        case ActionMode.Rehearse:
+            return <LuMonitorPlay />;
+        case ActionMode.Flag:
+            return <LuFlag />;
+        case ActionMode.Edit:
+            return <LuFilePen />;
+        default:
+            return <LuDrum />;
+    }
 }
 
+const commonButtons: [string, ActionMode][] = [
+    ['Perform', ActionMode.Perform],
+    ['Practice', ActionMode.Practice]
+];
+
 export default function Loading() {
-	const { canEdit } = useFirestore();
-	const { mode, setActionMode } = useActionContext();
-	const [icon, setIcon] = useState(getIcon(mode));
+    const { isMe, canEdit } = useFirestore();
+    const { mode, setActionMode } = useActionContext();
+    const [icon, setIcon] = useState(getIcon(mode));
+    const [buttons, setButtons] = useState<[string, ActionMode][]>([]);
 
-	useEffect(() => {
-		setIcon(getIcon(mode));
-	}, [mode]);
+    useEffect(() => {
+        setIcon(getIcon(mode));
+    }, [mode]);
 
-	if (!canEdit) {
-		return null;
-	}
+    useEffect(() => {
+        const btns = [...commonButtons];
 
-	function handleClick(
-		mode: ActionMode,
-		event?: MouseEvent<HTMLButtonElement>,
-	) {
-		event?.currentTarget.blur();
-		setActionMode(mode);
-	}
+        if (canEdit) {
+            btns.push(['Edit', ActionMode.Edit]);
+            btns.push(['Flag', ActionMode.Flag]);
+        } else {
+            btns.push(['Rehearse', ActionMode.Rehearse]);
+        }
 
-	console.log("mode", mode);
+        setButtons(btns);
+    }, [canEdit]);
 
-	return (
-		<div className="fab fab-flower">
-			{/* a focusable div with tabIndex is necessary to work on all browsers. role="button" is necessary for accessibility */}
-			<button type="button" className="btn btn-lg btn-info btn-circle">
-				{icon}
-			</button>
-			{/* Main Action button replaces the original button when FAB is open */}
-			<button
-				type="button"
-				className="fab-main-action btn btn-circle btn-lg btn-success"
-				onClick={(e) => e.currentTarget.blur()}
-			>
-				<LuSquareX />
-			</button>
-			{/* buttons that show up when FAB is open */}
-			<div className="tooltip tooltip-left" data-tip="Perform">
-				<button
-					type="button"
-					className="btn btn-lg btn-circle"
-					onClick={(e) => handleClick(ActionMode.Perform, e)}
-				>
-					{getIcon(ActionMode.Perform)}
-				</button>
-			</div>
-			<div className="tooltip tooltip-left" data-tip="Practice">
-				<button
-					type="button"
-					className="btn btn-lg btn-circle"
-					onClick={(e) => handleClick(ActionMode.Practice, e)}
-				>
-					{getIcon(ActionMode.Practice)}
-				</button>
-			</div>
-			<div className="tooltip tooltip-left" data-tip="Rehearse">
-				<button
-					type="button"
-					className="btn btn-lg btn-circle"
-					onClick={(e) => handleClick(ActionMode.Rehearse, e)}
-				>
-					{getIcon(ActionMode.Rehearse)}
-				</button>
-			</div>
-			<div className="tooltip tooltip-left" data-tip="Flag">
-				<button
-					type="button"
-					className="btn btn-lg btn-circle"
-					onClick={(e) => handleClick(ActionMode.Flag, e)}
-				>
-					{getIcon(ActionMode.Flag)}
-				</button>
-			</div>
-		</div>
-	);
+    if (!isMe) {
+        return null;
+    }
+
+    function handleClick(mode: ActionMode, event?: MouseEvent<HTMLButtonElement>) {
+        event?.currentTarget.blur();
+        setActionMode(mode);
+    }
+
+    return (
+        <div className="fab fab-flower">
+            <button type="button" className="btn btn-lg btn-soft btn-circle">
+                {icon}
+            </button>
+            {/* Main Action button replaces the original button when FAB is open */}
+            <button
+                type="button"
+                className="fab-main-action btn btn-circle btn-lg btn-neutral"
+                onClick={(e) => e.currentTarget.blur()}
+            >
+                <LuSquareX />
+            </button>
+            {buttons.map(([tip, mode]) => (
+                <div key={mode} className="tooltip tooltip-left" data-tip={tip}>
+                    <button
+                        type="button"
+                        className="btn btn-lg btn-circle btn-soft"
+                        onClick={(e) => handleClick(mode, e)}
+                    >
+                        {getIcon(mode)}
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
 }

@@ -1,104 +1,127 @@
-import type {
-	DocumentSnapshot,
-	QueryDocumentSnapshot,
-	QuerySnapshot,
-} from "firebase/firestore";
 import {
-	collection,
-	doc,
-	getDoc,
-	getDocs,
-	query,
-	where,
-} from "firebase/firestore";
-import { createContext, useCallback, useContext } from "react";
-import { db } from "@/config/firebase";
-import { type Gig, gigConverter } from "@/firestore/gigs";
-import { type Song, songConverter, User } from "@/firestore/songs";
+    browserSessionPersistence,
+    type User as FirebaseUser,
+    GoogleAuthProvider,
+    getAuth,
+    onAuthStateChanged,
+    signInWithPopup
+} from 'firebase/auth';
+import type { QueryDocumentSnapshot } from 'firebase/firestore';
+import { createContext, useCallback, useContext, useState } from 'react';
+import app from '@/config/firebase';
+import type { Band } from '@/firestore/bands';
+import { User } from '@/firestore/songs';
+import { useToastHelpers } from '@/hooks/useToastHelpers';
+import { useError } from './ErrorContext';
 
 interface FirestoreContextType {
-	band: QueryDocumentSnapshot<{ description: string }>;
-	bands: QueryDocumentSnapshot<{ description: string }>[];
-	user: User;
-	canEdit: boolean;
-	isMe: boolean;
-	// Methods
-	getGigs: () => Promise<QuerySnapshot<Gig>>;
-	getGig: (gigId: string) => Promise<DocumentSnapshot<Gig>>;
-	getSongs: () => Promise<QuerySnapshot<Song>>;
+    band: QueryDocumentSnapshot<Band>;
+    bands: QueryDocumentSnapshot<Band>[];
+    user: User;
+    isMe: boolean;
+    canEdit: boolean;
+    login: () => Promise<void>;
+    logout: () => Promise<void>;
 }
 
 const FirestoreContext = createContext<FirestoreContextType>({
-	band: {} as QueryDocumentSnapshot<{ id: string; description: string }>,
-	bands: [],
-	user: User.None,
-	canEdit: false,
-	isMe: false,
-	getGigs: async () => {
-		throw new Error("FirestoreProvider not initialized");
-	},
-	getGig: async () => {
-		throw new Error("FirestoreProvider not initialized");
-	},
-	getSongs: () => {
-		throw new Error("FirestoreProvider not initialized");
-	},
+    band: {} as QueryDocumentSnapshot<Band>,
+    bands: [],
+    user: User.None,
+    canEdit: false,
+    isMe: false,
+    login: async () => {
+        throw new Error('login function not implemented');
+    },
+    logout: async () => {
+        throw new Error('logout function not implemented');
+    }
 });
 
 interface FirestoreProviderProps {
-	children: React.ReactNode;
-	band: QueryDocumentSnapshot<{ description: string }>;
-	bands: QueryDocumentSnapshot<{ description: string }>[];
-	userCode: User;
+    children: React.ReactNode;
+    band: QueryDocumentSnapshot<Band>;
+    bands: QueryDocumentSnapshot<Band>[];
+    userCode: User;
 }
 
-export function FirestoreProvider({
-	children,
-	band,
-	bands,
-	userCode,
-}: FirestoreProviderProps) {
-	const getGigs = useCallback(() => {
-		return getDocs(
-			query(
-				collection(db, "gigs"),
-				where("band", "==", band.ref),
-			).withConverter(gigConverter),
-		);
-	}, [band.ref]);
+export function FirestoreProvider({ children, band, bands, userCode }: FirestoreProviderProps) {
+    const [user, setUser] = useState<FirebaseUser | null>(null),
+        [auth, setAuth] = useState<ReturnType<typeof getAuth> | null>(null),
+        [canEdit, setCanEdit] = useState(false),
+        { logError } = useError(),
+        { showSuccess, showError } = useToastHelpers();
 
-	const getGig = useCallback((gigId: string) => {
-		const gigRef = doc(db, "gigs", gigId).withConverter(gigConverter);
-		return getDoc(gigRef);
-	}, []);
+    const updateCanEdit = useCallback((user: FirebaseUser | null) => {
+        const authorizedUser = import.meta.env.VITE_AUTHORIZED_USER as string | undefined;
+        setCanEdit(user?.uid === authorizedUser);
+    }, []);
 
-	const getSongs = useCallback(() => {
-		return getDocs(
-			query(
-				collection(db, "songs"),
-				where("bands", "array-contains", band.ref),
-			).withConverter(songConverter),
-		);
-	}, [band.ref]);
+    const login = useCallback(async () => {
+        try {
+            const a = getAuth(app);
+            setAuth(a);
 
-	const value = {
-		band,
-		bands,
-		user: userCode,
-		canEdit: true,
-		isMe: userCode === User.Me,
-		getGigs,
-		getGig,
-		getSongs,
-	};
+            if (a) {
+                onAuthStateChanged(a, (user) => {
+                    setUser(user);
+                });
 
-	return (
-		<FirestoreContext.Provider value={value}>
-			{children}
-		</FirestoreContext.Provider>
-	);
+                await a.setPersistence(browserSessionPersistence);
+
+                const result = await signInWithPopup(a, new GoogleAuthProvider());
+                setUser(result.user);
+                updateCanEdit(result.user);
+                showSuccess('Successfully logged in!');
+            }
+        } catch (ex) {
+            const errorMessage = ex instanceof Error ? ex.message : String(ex);
+            logError('Authentication failed', {
+                details: errorMessage,
+                source: 'auth'
+            });
+            showError('Authentication failed', {
+                details: errorMessage
+            });
+        }
+    }, [updateCanEdit, showSuccess, logError, showError]);
+
+    const logout = useCallback(async () => {
+        try {
+            await auth?.signOut();
+            setUser(null);
+            setAuth(null);
+            updateCanEdit(user);
+            showSuccess('Successfully logged out!');
+        } catch (ex) {
+            const errorMessage = ex instanceof Error ? ex.message : String(ex);
+            logError('Logout failed', {
+                details: errorMessage,
+                source: 'auth'
+            });
+            showError('Logout failed', {
+                details: errorMessage
+            });
+        }
+    }, [auth, user, updateCanEdit, showSuccess, logError, showError]);
+
+    return (
+        <FirestoreContext.Provider
+            value={{
+                band,
+                bands,
+                user: userCode,
+                isMe: userCode === User.Me,
+                canEdit,
+                login,
+                logout
+            }}
+        >
+            {children}
+        </FirestoreContext.Provider>
+    );
 }
 
 export function useFirestore() {
-	return useContext(FirestoreContext);
+    return useContext(FirestoreContext);
 }

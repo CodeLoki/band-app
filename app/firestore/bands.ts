@@ -1,3 +1,20 @@
+import type { FirestoreDataConverter, QueryDocumentSnapshot } from 'firebase/firestore';
+
 export type Band = {
-	description: string;
+    id: string;
+    description: string;
+};
+
+export const bandConverter: FirestoreDataConverter<Band> = {
+    toFirestore: (band: Band) => {
+        const { id: _id, ...bandData } = band;
+        return bandData;
+    },
+    fromFirestore: (snapshot: QueryDocumentSnapshot, options) => {
+        const data = snapshot.data(options);
+        return {
+            id: snapshot.id,
+            ...data
+        } as Band;
+    }
 };
