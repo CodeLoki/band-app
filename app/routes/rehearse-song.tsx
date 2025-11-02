@@ -1,7 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { LuLogOut } from 'react-icons/lu';
-import { useParams } from 'react-router';
+import { useParams } from 'react-router-dom';
 import Loading from '@/components/Loading';
 import { db } from '@/config/firebase';
 import { type Song, songConverter } from '@/firestore/songs';

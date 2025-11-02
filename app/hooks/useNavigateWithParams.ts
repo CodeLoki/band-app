@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { type NavigateOptions, useNavigate, useSearchParams } from 'react-router';
+import { type NavigateOptions, useNavigate, useSearchParams } from 'react-router-dom';
 import { addQueryParamsToUrl } from '@/components/NavLink';
 
 /**

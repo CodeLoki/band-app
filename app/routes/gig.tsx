@@ -1,7 +1,7 @@
 import { type DocumentSnapshot, doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { LuFilePen } from 'react-icons/lu';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router-dom';
 import ActionSelector from '@/components/ActionSelector';
 import Loading from '@/components/Loading';
 import NavBarLink from '@/components/NavBarLink';

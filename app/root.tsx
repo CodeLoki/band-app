@@ -1,9 +1,8 @@
 import clsx from 'clsx';
 import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
-import type { ClientLoaderFunctionArgs } from 'react-router';
-import { Links, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, useNavigate } from 'react-router';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { type Band, bandConverter } from '@/firestore/bands';
 import NavLink from './components/NavLink';
 import Toasts from './components/Toasts';
@@ -18,68 +17,67 @@ import { User } from './firestore/songs';
 
 import './tailwind.css';
 
-// Add ErrorBoundary for route-level error handling
 export { default as ErrorBoundary } from './components/ErrorBoundary';
 
-export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
-    const url = new URL(request.url),
-        b = url.searchParams.get('b') ?? 'qRphnEOTg8GeDc0dQa4K',
-        u = url.searchParams.get('u');
-
-    const bands = (await getDocs(collection(db, 'bands').withConverter(bandConverter))).docs,
-        band = bands.find((band) => band.id === b);
-
-    if (!band) {
-        throw new Error(`Band not found "${b}"`);
-    }
-
-    // Parse and validate user param, default to User.None
-    let user: User = User.None;
-    if (u && Object.values(User).includes(u as User)) {
-        user = u as User;
-    }
-
-    return { band, bands, user };
-}
-
-export function links(): Array<{ rel: string; href: string }> {
-    return [{ rel: 'icon', href: '/favicon.ico' }];
-}
-
-export function Layout({ children }: { children: React.ReactNode }) {
-    return (
-        <html lang="en" data-theme="dark">
-            <head>
-                <meta charSet="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <Meta />
-                <Links />
-            </head>
-            <body>
-                {children}
-                <ScrollRestoration />
-                <Scripts />
-            </body>
-        </html>
-    );
-}
+const LoadingScreen = () => (
+    <div className="min-h-screen flex items-center justify-center bg-base-200">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+    </div>
+);
 
 export default function Root() {
-    const { band, bands, user } = useLoaderData<typeof clientLoader>();
+    const [appData, setAppData] = useState<{
+        band: QueryDocumentSnapshot<Band>;
+        bands: QueryDocumentSnapshot<Band>[];
+        user: User;
+    } | null>(null);
 
     useEffect(() => {
-        const bandName = band.get('description');
-        if (bandName) {
-            document.title = bandName;
+        const initializeApp = async () => {
+            const url = new URL(window.location.href);
+            const defaultBandId = 'qRphnEOTg8GeDc0dQa4K';
+            const b = url.searchParams.get('b') ?? defaultBandId;
+            const u = url.searchParams.get('u') as User | null;
+
+            const bandsSnapshot = await getDocs(collection(db, 'bands').withConverter(bandConverter));
+            const bands = bandsSnapshot.docs;
+            const band = bands.find((band) => band.id === b);
+
+            if (!band) {
+                throw new Error(`Band not found "${b}"`);
+            }
+
+            // Parse and validate user param, default to User.None
+            let user: User = User.None;
+            if (u && Object.values(User).includes(u)) {
+                user = u;
+            }
+
+            setAppData({ band, bands, user });
+        };
+
+        initializeApp().catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        if (appData?.band) {
+            const bandName = appData.band.get('description');
+            if (bandName) {
+                document.title = bandName;
+            }
         }
-    }, [band]);
+    }, [appData?.band]);
+
+    if (!appData) {
+        return <LoadingScreen />;
+    }
 
     return (
         <ToastProvider>
             <ErrorProvider>
                 <NavigationProvider>
                     <NavbarProvider>
-                        <FirestoreProvider band={band} bands={bands} userCode={user}>
+                        <FirestoreProvider band={appData.band} bands={appData.bands} userCode={appData.user}>
                             <ActionModeProvider>
                                 <div className="text-base-content bg-base-200 min-h-screen">
                                     <NavbarContent />
