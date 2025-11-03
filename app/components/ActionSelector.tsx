@@ -57,9 +57,10 @@ export default function Loading() {
 
     return (
         <div className="fab fab-flower">
-            <button type="button" className="btn btn-lg btn-soft btn-circle">
+            {/* biome-ignore lint/a11y/useSemanticElements: a focusable div with tabIndex is necessary to work on all browsers. role="button" is necessary for accessibility */}
+            <div tabIndex={0} role="button" className="btn btn-lg btn-soft btn-circle">
                 {icon}
-            </button>
+            </div>
             {/* Main Action button replaces the original button when FAB is open */}
             <button
                 type="button"
