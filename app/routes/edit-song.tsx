@@ -216,7 +216,7 @@ export default function EditSong() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto my-5">
+        <div className="max-w-5xl mx-auto my-5">
             <div className="card card-border bg-neutral shadow-xl">
                 <Form ref={formRef} className="card-body">
                     <div className="space-y-4">

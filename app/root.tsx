@@ -155,7 +155,7 @@ function NavbarContent() {
     const { navbarContent } = useNavbar();
 
     return (
-        <div className="navbar bg-neutral items-center gap-1 py-0 min-h-auto">
+        <div className="navbar sticky top-0 z-50 bg-neutral shadow-md items-center gap-1 py-0 min-h-auto">
             <div className="flex-1">
                 <BandName />
             </div>
