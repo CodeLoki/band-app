@@ -90,7 +90,7 @@ export default function SongsIndex() {
             }
         };
 
-        loadSongs();
+        void loadSongs();
     }, [filter, band, logError, showError]);
 
     if (loading) {

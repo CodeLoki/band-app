@@ -32,7 +32,7 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
     const navigateWithParams = useCallback(
         (path: string): void => {
             const fullPath = buildPathWithParams(path);
-            navigate(fullPath);
+            void navigate(fullPath);
         },
         [navigate, buildPathWithParams]
     );

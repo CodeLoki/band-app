@@ -102,7 +102,7 @@ export default function Toasts() {
     }
 
     return (
-        <div className="toast toast-bottom toast-start z-50">
+        <div className="toast toast-end z-50">
             {toasts.map((toast) => (
                 <div key={toast.id} className={`alert shadow-lg ${getStatusCss(toast.type)}`}>
                     <div className="flex-1">

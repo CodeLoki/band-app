@@ -195,7 +195,7 @@ export default function EditGigTest() {
     }, [setNavbarContent, gigId, handleSave, handleDelete, navigate]);
 
     useEffect(() => {
-        (async () => {
+        void (async () => {
             try {
                 const allSongs = await getDocs(
                     query(collection(db, 'songs'), where('bands', 'array-contains', bandRef)).withConverter(

@@ -2,18 +2,34 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-    themes:
-        dim,
-        dark,
-        forest,
-        aqua,
-        black,
-        luxury,
-        dracula --default,
-        business,
-        autumn,
-        winter,
-        pastel,
-        garden,
-        cupcake;
+    themes: dim, dracula, cupcake;
 }
+
+@plugin "daisyui/theme" {
+    name: "dracula";
+    --color-primary: oklch(88.263% 0.093 212.846);
+    --color-primary-content: oklch(0% 0 0);
+    --color-secondary: oklch(60% 0.25 292.717);
+    --color-secondary-content: oklch(100% 0 0);
+    --color-info: oklch(62% 0.214 259.815);
+    --color-info-content: oklch(100% 0 0);
+    --color-success: oklch(76% 0.177 163.223);
+    --color-success-content: oklch(0% 0 0);
+    --color-warning: oklch(94% 0.129 101.54);
+    --color-warning-content: oklch(19.106% 0.026 112.757);
+    --depth: 1;
+}
+
+@plugin "daisyui/theme" {
+    name: "dim";
+    --color-primary: oklch(82% 0.111 230.318);
+    --color-primary-content: oklch(17.226% 0.028 139.549);
+    --color-info: oklch(62% 0.214 259.815);
+    --color-info-content: oklch(100% 0 0);
+    --depth: 1;
+}
+
+/* @plugin "daisyui" {
+    theme
+    s: dim, dark, forest, aqua, black, luxury, dracula --default, business, autumn, winter, pastel, garden, cupcake;
+} */

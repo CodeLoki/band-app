@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { useCallback, useEffect, useState } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { type Band, bandConverter } from '@/firestore/bands';
 import NavLink from './components/NavLink';
 import Toasts from './components/Toasts';
@@ -26,6 +26,7 @@ const LoadingScreen = () => (
 );
 
 export default function Root() {
+    const location = useLocation();
     const [appData, setAppData] = useState<{
         band: QueryDocumentSnapshot<Band>;
         bands: QueryDocumentSnapshot<Band>[];
@@ -34,14 +35,14 @@ export default function Root() {
 
     useEffect(() => {
         const initializeApp = async () => {
-            const url = new URL(window.location.href);
-            const defaultBandId = 'qRphnEOTg8GeDc0dQa4K';
-            const b = url.searchParams.get('b') ?? defaultBandId;
-            const u = url.searchParams.get('u') as User | null;
+            const url = new URL(window.location.origin + location.pathname + location.search),
+                defaultBandId = 'qRphnEOTg8GeDc0dQa4K',
+                b = url.searchParams.get('b') ?? defaultBandId,
+                u = url.searchParams.get('u') as User | null;
 
-            const bandsSnapshot = await getDocs(collection(db, 'bands').withConverter(bandConverter));
-            const bands = bandsSnapshot.docs;
-            const band = bands.find((band) => band.id === b);
+            const bandsSnapshot = await getDocs(collection(db, 'bands').withConverter(bandConverter)),
+                bands = bandsSnapshot.docs,
+                band = bands.find((band) => band.id === b);
 
             if (!band) {
                 throw new Error(`Band not found "${b}"`);
@@ -57,7 +58,7 @@ export default function Root() {
         };
 
         initializeApp().catch(console.error);
-    }, []);
+    }, [location.search, location.pathname]);
 
     useEffect(() => {
         if (appData?.band) {
@@ -96,7 +97,7 @@ export default function Root() {
 function BandName() {
     const { isMe, canEdit, login, user, band, bands } = useFirestore(),
         navigate = useNavigate(),
-        cssBandName = 'btn btn-ghost text-lg',
+        cssBandName = 'btn btn-neutral text-lg',
         { description } = band.data();
 
     const updateBand = useCallback(
@@ -104,7 +105,7 @@ function BandName() {
             // Remove focus from the clicked element to close the dropdown
             (event.currentTarget as HTMLElement).blur();
 
-            navigate(`/?b=${b.id}&u=${u}`);
+            void navigate(`/?b=${b.id}&u=${u}`);
         },
         [navigate]
     );

@@ -13,7 +13,7 @@ export default function ErrorBoundary() {
     const navigateHome = () => {
         const currentParams = new URLSearchParams(window.location.search);
         const homeUrl = currentParams.toString() ? `/?${currentParams.toString()}` : '/';
-        navigate(homeUrl);
+        void navigate(homeUrl);
     };
 
     if (isRouteErrorResponse(error)) {

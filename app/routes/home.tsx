@@ -34,7 +34,7 @@ export default function Home() {
     usePageTitle({ pageTitle: 'Home' });
 
     useEffect(() => {
-        (async () => {
+        void (async () => {
             const gigs = await getDocs(
                 query(collection(db, 'gigs'), where('band', '==', band.ref)).withConverter(gigConverter)
             );

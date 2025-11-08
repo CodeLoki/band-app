@@ -1,9 +1,11 @@
 import { type DocumentSnapshot, doc, getDoc } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
-import { LuFilePen } from 'react-icons/lu';
+import { jsPDF } from 'jspdf';
+import { useCallback, useEffect, useState } from 'react';
+import { LuFilePen, LuFileText } from 'react-icons/lu';
 import { useNavigate, useParams } from 'react-router-dom';
 import ActionSelector from '@/components/ActionSelector';
 import Loading from '@/components/Loading';
+import NavBarButton from '@/components/NavBarButton';
 import NavBarLink from '@/components/NavBarLink';
 import SongCard from '@/components/SongCard';
 import { db } from '@/config/firebase';
@@ -13,6 +15,11 @@ import { type Gig, gigConverter } from '@/firestore/gigs';
 import type { Song } from '@/firestore/songs';
 import { calculateSetListLength } from '@/firestore/songs';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { useToastHelpers } from '@/hooks/useToastHelpers';
+
+function getSetListTitle(title: string, songs: DocumentSnapshot<Song>[]) {
+    return `${title} (${calculateSetListLength(songs)})`;
+}
 
 // meta function removed as title is managed by usePageTitle
 function SetList({
@@ -24,12 +31,12 @@ function SetList({
     songs: DocumentSnapshot<Song>[];
     isSingleSet?: boolean;
 }) {
-    const text = `${title} (${calculateSetListLength(songs)})`;
+    const setListTitle = getSetListTitle(title, songs);
 
     if (!isSingleSet) {
         return (
             <div key={title}>
-                <h3 className="text-xl font-bold mb-4">{text}</h3>
+                <h3 className="text-xl font-bold mb-4">{setListTitle}</h3>
                 <div className="grid grid-cols-1 gap-4">
                     {songs.length ? (
                         songs.map((song) => <SongCard song={song} key={song.id} />)
@@ -48,7 +55,7 @@ function SetList({
 
     return (
         <div key={title}>
-            <h3 className="text-xl font-bold mb-4">{text}</h3>
+            <h3 className="text-xl font-bold mb-4">{setListTitle}</h3>
             <div className="block md:flex md:gap-4 w-full">
                 <div className="space-y-4 mb-4 md:mb-0 md:flex-1">
                     {firstColumn.map((song) => (
@@ -65,6 +72,16 @@ function SetList({
     );
 }
 
+function getGigDate(gig: DocumentSnapshot<Gig>) {
+    const gigData = gig.data();
+    if (!gigData) return 'Unknown Date';
+    return gigData.date.toDate().toLocaleDateString('en', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+
 export default function GigRoute() {
     const { gigId } = useParams(),
         { canEdit } = useFirestore(),
@@ -76,19 +93,96 @@ export default function GigRoute() {
             pocket: DocumentSnapshot<Song>[];
         }>(),
         [loading, setLoading] = useState(true),
+        { showError, showSuccess } = useToastHelpers(),
         { setNavbarContent } = useNavbar();
 
     const pageTitle = (() => {
         const gigData = gig?.data();
-        if (!gigData) return 'Loading Gig...';
-        return `${gigData.venue} - ${gigData.date.toDate().toLocaleDateString('en', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric'
-        })}`;
+        if (!gig || !gigData) return 'Loading Gig...';
+        return `${gigData.venue} - ${getGigDate(gig)}`;
     })();
 
     usePageTitle({ pageTitle });
+
+    const generatePDF = useCallback(() => {
+        if (!gig || !songs) return;
+
+        const gigData = gig.data();
+        if (!gigData) return;
+
+        try {
+            const date = getGigDate(gig),
+                lineHeight = 10,
+                pdf = new jsPDF({
+                    format: 'letter'
+                });
+
+            const fnRenderHeader = (): number => {
+                pdf.setFont('Helvetica', 'bold');
+                pdf.text(gigData.venue, lineHeight, 10);
+                pdf.text(date, 200, 10, {
+                    align: 'right'
+                });
+                pdf.setFont('Helvetica', 'normal');
+
+                return 30;
+            };
+
+            let baseY = fnRenderHeader();
+
+            const fnAddSetList = (
+                setTitle: string,
+                setSongs: DocumentSnapshot<Song>[],
+                xOffset: number,
+                yOffset: number
+            ) => {
+                pdf.setFont('Helvetica', 'bold');
+                pdf.text(getSetListTitle(setTitle, setSongs), lineHeight + xOffset, yOffset);
+                pdf.setFont('Helvetica', 'normal');
+
+                setSongs.forEach((song, index) => {
+                    const data = song.data();
+                    if (data) {
+                        pdf.text(
+                            `${song.data()?.title}`,
+                            lineHeight + xOffset,
+                            yOffset + lineHeight + index * lineHeight
+                        );
+                    }
+                });
+            };
+
+            const { one, two, pocket } = songs;
+
+            if (one.length > 0) {
+                fnAddSetList('Set One', one, 0, baseY);
+            }
+
+            if (two.length > 0) {
+                fnAddSetList('Set Two', two, 100, baseY);
+            }
+
+            // Update baseY to account for the tallest set list.
+            baseY = baseY + 20 + Math.max(one.length, two.length) * lineHeight;
+
+            if (pocket.length > 0) {
+                // Will the pocket set NOT fit on the current page?
+                if (baseY + pocket.length * lineHeight > 290) {
+                    pdf.addPage();
+                    baseY = fnRenderHeader();
+                }
+
+                fnAddSetList('Pocket', pocket, 0, baseY);
+            }
+
+            pdf.save(`${gigData.venue}-${date}.pdf`);
+            showSuccess('PDF generated successfully!');
+        } catch (ex) {
+            showError('Failed to generate PDF', {
+                details: ex instanceof Error ? ex.message : String(ex)
+            });
+        }
+    }, [gig, songs, showSuccess, showError]);
 
     useEffect(() => {
         if (canEdit) {
@@ -98,22 +192,29 @@ export default function GigRoute() {
                     Edit
                 </NavBarLink>
             );
+        } else {
+            setNavbarContent(
+                <NavBarButton fn={generatePDF}>
+                    <LuFileText />
+                    PDF
+                </NavBarButton>
+            );
         }
 
         return () => setNavbarContent(null);
-    }, [setNavbarContent, canEdit, gigId]);
+    }, [setNavbarContent, canEdit, gigId, generatePDF]);
 
     useEffect(() => {
         if (!gigId) {
-            navigate('/');
+            void navigate('/');
             return;
         }
 
-        (async () => {
+        void (async () => {
             try {
                 const gigDoc = await getDoc(doc(db, 'gigs', gigId).withConverter(gigConverter));
                 if (!gigDoc.exists()) {
-                    navigate('/');
+                    void navigate('/');
                     return;
                 }
 
@@ -121,7 +222,7 @@ export default function GigRoute() {
 
                 const gigData = gigDoc.data();
                 if (!gigData) {
-                    navigate('/');
+                    void navigate('/');
                     return;
                 }
 
@@ -136,7 +237,7 @@ export default function GigRoute() {
                 setLoading(false);
             } catch (error) {
                 console.error('Error loading gig:', error);
-                navigate('/');
+                void navigate('/');
             }
         })();
     }, [gigId, navigate]);
@@ -157,10 +258,17 @@ export default function GigRoute() {
                     <h2 className="text-2xl font-bold mb-2">{pageTitle}</h2>
 
                     {/* Responsive Sets Layout */}
-                    {songs.two.length === 0 && songs.pocket.length === 0 ? (
-                        <div className="grid gap-y-8 grid-cols-1 gap-4">
-                            <SetList title="Single Set" songs={songs.one} isSingleSet={true} />
-                        </div>
+                    {songs.two.length === 0 ? (
+                        <>
+                            <div className="grid gap-y-8 grid-cols-1 gap-4">
+                                <SetList title="Single Set" songs={songs.one} isSingleSet={true} />
+                            </div>
+                            {songs.pocket.length > 0 && (
+                                <div className="grid gap-y-8 grid-cols-1 md:grid-cols-2 gap-4">
+                                    <SetList title="Pocket" songs={songs.pocket} />
+                                </div>
+                            )}
+                        </>
                     ) : (
                         <div className="grid gap-y-8 grid-cols-1 md:grid-cols-2 gap-4">
                             <SetList title="Set One" songs={songs.one} />

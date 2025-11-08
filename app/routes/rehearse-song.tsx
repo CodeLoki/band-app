@@ -22,7 +22,7 @@ export default function RehearseSong() {
     }
 
     useEffect(() => {
-        (async () => {
+        void (async () => {
             try {
                 const songDoc = await getDoc(doc(db, 'songs', songId).withConverter(songConverter));
                 if (!songDoc.exists()) {
@@ -55,7 +55,7 @@ export default function RehearseSong() {
 
             <button
                 type="button"
-                className="absolute bottom-[220px] left-4 z-10 btn btn-circle btn-primary btn-lg"
+                className="absolute bottom-8 right-8 z-10 btn btn-circle btn-primary btn-lg"
                 onClick={() => window.history.back()}
             >
                 <LuLogOut />
@@ -67,7 +67,6 @@ export default function RehearseSong() {
                     height="200"
                     src={`https://www.youtube.com/embed/${song.ytMusic}`}
                     title={`${song.artist} - ${song.title}`}
-                    frameBorder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     referrerPolicy="strict-origin-when-cross-origin"
                     className="absolute z-1 left-0 bottom-0"

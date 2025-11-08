@@ -10,10 +10,35 @@ import { CardStyle } from '@/utils/general';
 
 type BadgeColor = 'badge-info' | 'badge-success' | 'badge-warning' | 'badge-error';
 
+enum NoteType {
+    StartsWith,
+    Pad,
+    Notes,
+    Features,
+    Solos
+}
+
 type Note = {
-    icon: IconType;
+    type: NoteType;
     text: string;
+    icon: IconType;
     color: BadgeColor;
+};
+
+const NoteTypeToBadgeColor: Record<NoteType, BadgeColor> = {
+    [NoteType.StartsWith]: 'badge-info',
+    [NoteType.Pad]: 'badge-warning',
+    [NoteType.Notes]: 'badge-success',
+    [NoteType.Features]: 'badge-success',
+    [NoteType.Solos]: 'badge-warning'
+};
+
+const NoteTypeToIcon: Record<NoteType, IconType> = {
+    [NoteType.StartsWith]: LuClock,
+    [NoteType.Pad]: LuStar,
+    [NoteType.Notes]: LuNotepadText,
+    [NoteType.Features]: LuMusic4,
+    [NoteType.Solos]: LuGuitar
 };
 
 enum TabSource {
@@ -81,16 +106,17 @@ function getTabLink(song: Song, tabSource: TabSource): string | undefined {
 
 function getSongNotes(songData: Song, user: User): Note[] {
     const notes: Note[] = [],
-        fnAddNote = (text: Note['text'], icon: Note['icon'], color: Note['color']): number =>
+        fnAddNote = (type: Note['type'], text: Note['text']): number =>
             notes.push({
-                icon,
+                type,
                 text,
-                color
+                icon: NoteTypeToIcon[type],
+                color: NoteTypeToBadgeColor[type]
             });
 
     const startsWith = startsWithMap.get(songData.startsWith);
     if (startsWith) {
-        fnAddNote(startsWith, LuClock, 'badge-info');
+        fnAddNote(NoteType.StartsWith, startsWith);
     }
 
     if (user === User.Me) {
@@ -98,13 +124,13 @@ function getSongNotes(songData: Song, user: User): Note[] {
         if (pad > DrumPad.None) {
             const padText = drumPadMap.get(pad);
             if (padText) {
-                fnAddNote(padText, LuStar, 'badge-warning');
+                fnAddNote(NoteType.Pad, padText);
             }
         }
 
         const { notes } = songData;
         if (notes) {
-            fnAddNote(notes, LuNotepadText, 'badge-success');
+            fnAddNote(NoteType.Notes, notes);
         }
     }
 
@@ -113,7 +139,7 @@ function getSongNotes(songData: Song, user: User): Note[] {
         if (features && features !== Instrument.None) {
             const featureText = instrumentMap.get(features);
             if (featureText) {
-                fnAddNote(featureText, LuMusic4, 'badge-success');
+                fnAddNote(NoteType.Features, featureText);
             }
         }
 
@@ -121,7 +147,7 @@ function getSongNotes(songData: Song, user: User): Note[] {
             solos.forEach((inst) => {
                 const soloText = instrumentMap.get(inst);
                 if (soloText) {
-                    fnAddNote(soloText, LuGuitar, 'badge-warning');
+                    fnAddNote(NoteType.Solos, soloText);
                 }
             });
         }

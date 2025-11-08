@@ -33,7 +33,9 @@
                 "noEmptyPattern": "off"
             },
             "nursery": {
-                "recommended": true
+                "recommended": true,
+                "noFloatingPromises": "error",
+                "noMisusedPromises": "error"
             },
             "performance": {
                 "recommended": true

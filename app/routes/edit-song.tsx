@@ -125,7 +125,7 @@ export default function EditSong() {
 
     // Wrapper that passes current state to the stable function
     const handleSave = useCallback(() => {
-        performSave(song);
+        void performSave(song);
     }, [performSave, song]);
 
     const handleDelete = useCallback(() => {
@@ -173,7 +173,7 @@ export default function EditSong() {
     }, [setNavbarContent, songId, handleSave, handleDelete, goBack]);
 
     useEffect(() => {
-        (async () => {
+        void (async () => {
             try {
                 if (songId === 'new') {
                     return;

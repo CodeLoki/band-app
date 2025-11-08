@@ -7,7 +7,7 @@ export default function NavBarButton({
     ...props
 }: { fn: VoidFunction } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
-        <button type="button" onClick={fn} className={clsx('btn btn-ghost btn-sm', className)} {...props}>
+        <button type="button" onClick={fn} className={clsx('btn btn-neutral btn-sm', className)} {...props}>
             {children}
         </button>
     );

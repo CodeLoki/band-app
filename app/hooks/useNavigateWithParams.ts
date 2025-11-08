@@ -28,14 +28,14 @@ export function useNavigateWithParams() {
             const { preserveSearch = true, ...navigateOptions } = options || {};
 
             if (!preserveSearch) {
-                navigate(to, navigateOptions);
+                void navigate(to, navigateOptions);
                 return;
             }
 
             // Use current searchParams instead of the captured one
             const currentSearchParams = new URLSearchParams(window.location.search);
             const toWithParams = addQueryParamsToUrl(to, currentSearchParams);
-            navigate(toWithParams, navigateOptions);
+            void navigate(toWithParams, navigateOptions);
         },
         [navigate] // Only depend on navigate
     );

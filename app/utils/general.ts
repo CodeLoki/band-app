@@ -26,4 +26,4 @@ export function sortBy<T extends DocumentSnapshot>(models: T[], key: keyof Docum
 }
 
 export const CardStyle =
-    'card bg-base-100 card-border border-info rounded-lg card-xl shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer w-full';
+    'card bg-base-100 card-border border-primary rounded-lg card-xl shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer w-full';
