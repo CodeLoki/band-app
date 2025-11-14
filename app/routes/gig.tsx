@@ -14,14 +14,13 @@ import { useNavbar } from '@/contexts/NavbarContext';
 import { type Gig, gigConverter } from '@/firestore/gigs';
 import type { Song } from '@/firestore/songs';
 import { calculateSetListLength } from '@/firestore/songs';
-import { usePageTitle } from '@/hooks/usePageTitle';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
+import { getTitle } from '@/utils/general';
 
 function getSetListTitle(title: string, songs: DocumentSnapshot<Song>[]) {
     return `${title} (${calculateSetListLength(songs)})`;
 }
 
-// meta function removed as title is managed by usePageTitle
 function SetList({
     title,
     songs,
@@ -84,7 +83,7 @@ function getGigDate(gig: DocumentSnapshot<Gig>) {
 
 export default function GigRoute() {
     const { gigId } = useParams(),
-        { canEdit } = useFirestore(),
+        { canEdit, band } = useFirestore(),
         navigate = useNavigate(),
         [gig, setGig] = useState<DocumentSnapshot<Gig>>(),
         [songs, setSongs] = useState<{
@@ -95,14 +94,6 @@ export default function GigRoute() {
         [loading, setLoading] = useState(true),
         { showError, showSuccess } = useToastHelpers(),
         { setNavbarContent } = useNavbar();
-
-    const pageTitle = (() => {
-        const gigData = gig?.data();
-        if (!gig || !gigData) return 'Loading Gig...';
-        return `${gigData.venue} - ${getGigDate(gig)}`;
-    })();
-
-    usePageTitle({ pageTitle });
 
     const generatePDF = useCallback(() => {
         if (!gig || !songs) return;
@@ -247,12 +238,15 @@ export default function GigRoute() {
     }
 
     const gigData = gig?.data();
-    if (!gigData || !songs) {
+    if (!gig || !gigData || !songs) {
         return <Loading />;
     }
 
+    const pageTitle = getTitle(`${gigData.venue} - ${getGigDate(gig)}`, band);
+
     return (
         <>
+            <title>{pageTitle}</title>
             <div className="p-4">
                 <div className="flex flex-col gap-8">
                     <h2 className="text-2xl font-bold mb-2">{pageTitle}</h2>

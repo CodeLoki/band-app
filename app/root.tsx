@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLoaderData, useNavigate } from 'react-router-dom';
 import { type Band, bandConverter } from '@/firestore/bands';
 import NavLink from './components/NavLink';
 import Toasts from './components/Toasts';
@@ -19,59 +19,29 @@ import './tailwind.css';
 
 export { default as ErrorBoundary } from './components/ErrorBoundary';
 
-const LoadingScreen = () => (
-    <div className="min-h-screen flex items-center justify-center bg-base-200">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
-    </div>
-);
+export async function clientLoader({ request }: { request: Request }) {
+    const url = new URL(request.url),
+        b = url.searchParams.get('b') ?? 'qRphnEOTg8GeDc0dQa4K',
+        u = url.searchParams.get('u') as User | null;
+
+    const bandsSnapshot = await getDocs(collection(db, 'bands').withConverter(bandConverter)),
+        bands = bandsSnapshot.docs,
+        band = bands.find((band) => band.id === b);
+
+    if (!band) {
+        throw new Error(`Band not found "${b}"`);
+    }
+
+    let user = User.None;
+    if (u && Object.values(User).includes(u)) {
+        user = u;
+    }
+
+    return { band, bands, user };
+}
 
 export default function Root() {
-    const location = useLocation();
-    const [appData, setAppData] = useState<{
-        band: QueryDocumentSnapshot<Band>;
-        bands: QueryDocumentSnapshot<Band>[];
-        user: User;
-    } | null>(null);
-
-    useEffect(() => {
-        const initializeApp = async () => {
-            const url = new URL(window.location.origin + location.pathname + location.search),
-                defaultBandId = 'qRphnEOTg8GeDc0dQa4K',
-                b = url.searchParams.get('b') ?? defaultBandId,
-                u = url.searchParams.get('u') as User | null;
-
-            const bandsSnapshot = await getDocs(collection(db, 'bands').withConverter(bandConverter)),
-                bands = bandsSnapshot.docs,
-                band = bands.find((band) => band.id === b);
-
-            if (!band) {
-                throw new Error(`Band not found "${b}"`);
-            }
-
-            // Parse and validate user param, default to User.None
-            let user: User = User.None;
-            if (u && Object.values(User).includes(u)) {
-                user = u;
-            }
-
-            setAppData({ band, bands, user });
-        };
-
-        initializeApp().catch(console.error);
-    }, [location.search, location.pathname]);
-
-    useEffect(() => {
-        if (appData?.band) {
-            const bandName = appData.band.get('description');
-            if (bandName) {
-                document.title = bandName;
-            }
-        }
-    }, [appData?.band]);
-
-    if (!appData) {
-        return <LoadingScreen />;
-    }
+    const appData = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>;
 
     return (
         <ToastProvider>
@@ -80,11 +50,13 @@ export default function Root() {
                     <NavbarProvider>
                         <FirestoreProvider band={appData.band} bands={appData.bands} userCode={appData.user}>
                             <ActionModeProvider>
+                                <title>{appData.band.get('description')}</title>
                                 <div className="text-base-content bg-base-200 min-h-screen">
                                     <NavbarContent />
                                     <Outlet />
                                     <Toasts />
                                 </div>
+                                <ScrollRestoration />
                             </ActionModeProvider>
                         </FirestoreProvider>
                     </NavbarProvider>

@@ -1,5 +1,5 @@
 import { collection, getDocs, type QueryDocumentSnapshot, query, where } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LuCirclePlus } from 'react-icons/lu';
 import Loading from '@/components/Loading';
 import NavBarLink from '@/components/NavBarLink';
@@ -8,8 +8,7 @@ import { db } from '@/config/firebase';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavbar } from '@/contexts/NavbarContext';
 import { type Gig, gigConverter } from '@/firestore/gigs';
-import { usePageTitle } from '@/hooks/usePageTitle';
-import { CardStyle, sortBy } from '@/utils/general';
+import { CardStyle, getTitle, sortBy } from '@/utils/general';
 
 const renderGig = (gig: QueryDocumentSnapshot<Gig>) => {
     const data = gig.data(),
@@ -31,18 +30,20 @@ export default function Home() {
     const { setNavbarContent } = useNavbar();
     const [loading, setLoading] = useState(true);
 
-    usePageTitle({ pageTitle: 'Home' });
+    // biome-ignore lint/correctness/useExhaustiveDependencies: band.ref is an object, memoize based on band.id to prevent infinite loops
+    const bandRef = useMemo(() => band.ref, [band.id]);
 
     useEffect(() => {
+        setLoading(true);
         void (async () => {
             const gigs = await getDocs(
-                query(collection(db, 'gigs'), where('band', '==', band.ref)).withConverter(gigConverter)
+                query(collection(db, 'gigs'), where('band', '==', bandRef)).withConverter(gigConverter)
             );
 
             setGigs(sortBy(gigs.docs, 'date'));
             setLoading(false);
         })();
-    }, [band.ref]);
+    }, [bandRef]);
 
     useEffect(() => {
         if (canEdit) {
@@ -61,9 +62,14 @@ export default function Home() {
         return <Loading />;
     }
 
+    const pageTitle = getTitle('Home', band);
+
     return (
-        <div className="bg-base-800 m-4 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {gigs.length ? gigs.map(renderGig) : <p className="text-center col-span-full">No gigs scheduled.</p>}
-        </div>
+        <>
+            <title>{pageTitle}</title>
+            <div className="bg-base-800 m-4 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {gigs.length ? gigs.map(renderGig) : <p className="text-center col-span-full">No gigs scheduled.</p>}
+            </div>
+        </>
     );
 }

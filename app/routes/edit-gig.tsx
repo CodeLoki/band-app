@@ -27,9 +27,8 @@ import { type Gig, gigConverter } from '@/firestore/gigs';
 import type { Song } from '@/firestore/songs';
 import { calculateSetListLength, songConverter } from '@/firestore/songs';
 import { useNavigateWithParams } from '@/hooks/useNavigateWithParams';
-import { usePageTitle } from '@/hooks/usePageTitle';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
-import { sortBy } from '@/utils/general';
+import { getTitle, sortBy } from '@/utils/general';
 
 function getGigTitle(gig?: { date: Timestamp; venue: string }) {
     const date = gig?.date.toDate() ?? new Date(),
@@ -86,10 +85,6 @@ export default function EditGigTest() {
         one: [],
         two: [],
         pocket: []
-    });
-
-    usePageTitle({
-        pageTitle: gigId === 'new' ? 'Create Gig' : initialData ? `Edit "${initialData.venue || 'Gig'}"` : 'Loading...'
     });
 
     if (!canEdit || !isMe) {
@@ -263,65 +258,70 @@ export default function EditGigTest() {
             !currentPocket.some(({ id }) => id === song.id)
     );
 
+    const pageTitle = getTitle(gigId === 'new' ? 'Create Gig' : `Edit "${initialData.venue}"`, band);
+
     return (
-        <div className="m-8">
-            <div className="card card-border bg-neutral shadow-xl">
-                <Form ref={formRef} className="card-body space-y-4">
-                    <DateInput label="Date" name="date" currentValue={initialData.date} />
-                    <TextInput label="Venue" name="venue" defaultValue={initialData.venue} />
+        <>
+            <title>{pageTitle}</title>
+            <div className="m-8">
+                <div className="card card-border bg-neutral shadow-xl">
+                    <Form ref={formRef} className="card-body space-y-4">
+                        <DateInput label="Date" name="date" currentValue={initialData.date} />
+                        <TextInput label="Venue" name="venue" defaultValue={initialData.venue} />
 
-                    <h2 className="card-title mt-4">Set One Songs ({calculateSetListLength(currentSetOne)})</h2>
-                    <ShoppingCart
-                        allItems={getSongsFromDocs(availableSongs)}
-                        selectedItems={getSongsFromDocs(currentSetOne)}
-                        name="setOne"
-                        labelField="title"
-                        onChange={(songs) => setCurrentSetOne(getSnapshotsFromSongs(songs))}
-                    />
+                        <h2 className="card-title mt-4">Set One Songs ({calculateSetListLength(currentSetOne)})</h2>
+                        <ShoppingCart
+                            allItems={getSongsFromDocs(availableSongs)}
+                            selectedItems={getSongsFromDocs(currentSetOne)}
+                            name="setOne"
+                            labelField="title"
+                            onChange={(songs) => setCurrentSetOne(getSnapshotsFromSongs(songs))}
+                        />
 
-                    <h2 className="card-title mt-4">Set Two Songs ({calculateSetListLength(currentSetTwo)})</h2>
-                    <ShoppingCart
-                        allItems={getSongsFromDocs(availableSongs)}
-                        selectedItems={getSongsFromDocs(currentSetTwo)}
-                        name="setTwo"
-                        labelField="title"
-                        onChange={(songs) => setCurrentSetTwo(getSnapshotsFromSongs(songs))}
-                    />
+                        <h2 className="card-title mt-4">Set Two Songs ({calculateSetListLength(currentSetTwo)})</h2>
+                        <ShoppingCart
+                            allItems={getSongsFromDocs(availableSongs)}
+                            selectedItems={getSongsFromDocs(currentSetTwo)}
+                            name="setTwo"
+                            labelField="title"
+                            onChange={(songs) => setCurrentSetTwo(getSnapshotsFromSongs(songs))}
+                        />
 
-                    <h2 className="card-title mt-4">Pocket Songs ({calculateSetListLength(currentPocket)})</h2>
-                    <ShoppingCart
-                        allItems={getSongsFromDocs(availableSongs)}
-                        selectedItems={getSongsFromDocs(currentPocket)}
-                        name="pocket"
-                        labelField="title"
-                        onChange={(songs) => setCurrentPocket(getSnapshotsFromSongs(songs))}
-                    />
-                </Form>
-            </div>
-
-            <dialog ref={deleteModalRef} className="modal">
-                <div className="modal-box">
-                    <h3 className="font-bold text-lg">Delete Gig</h3>
-                    <p className="py-4">
-                        Are you sure you want to delete "<strong>{getGigTitle(gig?.data())}</strong>"?
-                    </p>
-                    <p className="text-warning text-sm">This action cannot be undone.</p>
-                    <div className="modal-action">
-                        <button type="button" className="btn btn-error" onClick={performDelete}>
-                            <LuTrash2 />
-                            Delete
-                        </button>
-                        <button
-                            type="button"
-                            className="btn btn-neutral"
-                            onClick={() => deleteModalRef.current?.close()}
-                        >
-                            <LuCircleX />
-                            Cancel
-                        </button>
-                    </div>
+                        <h2 className="card-title mt-4">Pocket Songs ({calculateSetListLength(currentPocket)})</h2>
+                        <ShoppingCart
+                            allItems={getSongsFromDocs(availableSongs)}
+                            selectedItems={getSongsFromDocs(currentPocket)}
+                            name="pocket"
+                            labelField="title"
+                            onChange={(songs) => setCurrentPocket(getSnapshotsFromSongs(songs))}
+                        />
+                    </Form>
                 </div>
-            </dialog>
-        </div>
+
+                <dialog ref={deleteModalRef} className="modal">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Delete Gig</h3>
+                        <p className="py-4">
+                            Are you sure you want to delete "<strong>{getGigTitle(gig?.data())}</strong>"?
+                        </p>
+                        <p className="text-warning text-sm">This action cannot be undone.</p>
+                        <div className="modal-action">
+                            <button type="button" className="btn btn-error" onClick={performDelete}>
+                                <LuTrash2 />
+                                Delete
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-neutral"
+                                onClick={() => deleteModalRef.current?.close()}
+                            >
+                                <LuCircleX />
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </dialog>
+            </div>
+        </>
     );
 }

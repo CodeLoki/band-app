@@ -10,14 +10,10 @@ import { useError } from '@/contexts/ErrorContext';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavbar } from '@/contexts/NavbarContext';
 import { type Song, songConverter } from '@/firestore/songs';
-import { usePageTitle } from '@/hooks/usePageTitle';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
-import { sortBy } from '@/utils/general';
+import { getTitle, sortBy } from '@/utils/general';
 
-// Import our error boundary component
 export { default as ErrorBoundary } from '@/components/ErrorBoundary';
-
-// Remove meta function as title is managed by usePageTitle
 
 enum FilterOption {
     Orphans = 'Orphans',
@@ -33,8 +29,6 @@ export default function SongsIndex() {
         [filter, setFilter] = useState<FilterOption>(FilterOption.All),
         [songs, setSongs] = useState<QueryDocumentSnapshot<Song>[]>([]),
         [loading, setLoading] = useState(true);
-
-    usePageTitle({ pageTitle: 'Songs' });
 
     useEffect(() => {
         if (canEdit) {
@@ -97,8 +91,11 @@ export default function SongsIndex() {
         return <Loading />;
     }
 
+    const pageTitle = getTitle('Songs', band);
+
     return (
         <>
+            <title>{pageTitle}</title>
             <div className="p-4">
                 <div className="flex flex-col gap-2">
                     <div className="flex gap-2">

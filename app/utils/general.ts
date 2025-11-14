@@ -1,5 +1,6 @@
 import type { DocumentData, DocumentSnapshot } from 'firebase/firestore';
 import { Timestamp } from 'firebase/firestore';
+import type { Band } from '@/firestore/bands';
 
 export function logError<T extends string>(msg: T, ...args: unknown[]): T {
     console.error(msg, ...args);
@@ -27,3 +28,7 @@ export function sortBy<T extends DocumentSnapshot>(models: T[], key: keyof Docum
 
 export const CardStyle =
     'card bg-base-100 card-border border-primary rounded-lg card-xl shadow-md hover:-translate-y-1 transition-all duration-200 cursor-pointer w-full';
+
+export function getTitle(title: string, band: DocumentSnapshot<Band>): string {
+    return `${title} | ${band.get('description')}`;
+}

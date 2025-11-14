@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import Root, { ErrorBoundary as RootErrorBoundary } from './root';
+import Root, { clientLoader, ErrorBoundary as RootErrorBoundary } from './root';
 import NotFound from './routes/404';
 import EditGig from './routes/edit-gig';
 import EditSong from './routes/edit-song';
@@ -13,6 +13,7 @@ const router = createBrowserRouter([
         path: '/',
         element: <Root />,
         errorElement: <RootErrorBoundary />,
+        loader: clientLoader,
         children: [
             {
                 index: true,
