@@ -82,10 +82,10 @@ export default function SongsIndex() {
             <div className="p-4">
                 <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
-                        <h2 className="flex-1 text-2xl font-bold mb-2">Songs ({songs.length})</h2>
+                        <h2 className="hidden md:block flex-1 text-2xl font-bold mb-2">Songs ({songs.length})</h2>
 
                         {isMe ? (
-                            <div className="filter flex-none">
+                            <div className="filter flex-none ms-auto">
                                 {buttons.map(([v, t, c = '']) => (
                                     <input
                                         className={`btn btn-sm ${c}`}

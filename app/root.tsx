@@ -4,18 +4,19 @@ import { useCallback } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
 import { useNavigation } from 'react-router';
 import { Outlet, ScrollRestoration, useLoaderData, useNavigate } from 'react-router-dom';
+import Loading from '@/components/Loading';
+import NavLink from '@/components/NavLink';
+import Toasts from '@/components/Toasts';
+import { ActionModeProvider } from '@/contexts/ActionContext';
+import { ErrorProvider } from '@/contexts/ErrorContext';
+import { FirestoreProvider, useFirestore } from '@/contexts/Firestore';
+import { NavbarProvider, useNavbar } from '@/contexts/NavbarContext';
+import { NavigationProvider } from '@/contexts/NavigationContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import type { Band } from '@/firestore/bands';
-import Loading from './components/Loading';
-import NavLink from './components/NavLink';
-import Toasts from './components/Toasts';
-import { ActionModeProvider } from './contexts/ActionContext';
-import { ErrorProvider } from './contexts/ErrorContext';
-import { FirestoreProvider, useFirestore } from './contexts/Firestore';
-import { NavbarProvider, useNavbar } from './contexts/NavbarContext';
-import { NavigationProvider } from './contexts/NavigationContext';
-import { ToastProvider } from './contexts/ToastContext';
-import type { User } from './firestore/songs';
-import { loadAppData } from './loaders/appData';
+import type { User } from '@/firestore/songs';
+import { useIsMobile } from '@/hooks/useIsMobile';
+import { loadAppData } from '@/loaders/appData';
 
 import './tailwind.css';
 
@@ -60,8 +61,10 @@ export default function Root() {
 function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
     const { isMe, canEdit, login, user } = useFirestore(),
         navigate = useNavigate(),
+        isMobile = useIsMobile(),
         cssBandName = 'btn btn-neutral text-lg',
-        { description } = band.data();
+        { description } = band.data(),
+        Icon = !isMobile ? <LuFileMusic className="h-6 w-6 flex-none" /> : null;
 
     const updateBand = useCallback(
         (b: QueryDocumentSnapshot<Band>, u: User, event: React.MouseEvent) => {
@@ -76,7 +79,7 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
     if (!isMe) {
         return (
             <h1 className={clsx(cssBandName, 'pointer-events-none')}>
-                <LuFileMusic className="h-6 w-6 flex-none" />
+                {Icon}
                 {description}
             </h1>
         );
@@ -86,7 +89,7 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
         return (
             <h1 className="dropdown dropdown-start">
                 <button className={clsx(cssBandName, 'flex items-center gap-2')} tabIndex={0} type="button">
-                    <LuFileMusic className="h-6 w-6 flex-none" />
+                    {Icon}
                     <span>{description}</span>
                     <LuChevronDown className="w-4 h-4 opacity-70" />
                 </button>
@@ -108,15 +111,15 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
 
     return (
         <button type="button" className={cssBandName} onClick={login}>
-            <LuFileMusic className="h-6 w-6 flex-none" />
-
+            {Icon}
             {description}
         </button>
     );
 }
 
 function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
-    const { navbarContent } = useNavbar();
+    const { navbarContent } = useNavbar(),
+        isMobile = useIsMobile();
 
     return (
         <div className="navbar sticky top-0 z-50 bg-neutral shadow-md items-center gap-1 py-0 min-h-auto">
@@ -125,7 +128,7 @@ function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; ban
             </div>
 
             {/* Dynamic content from routes */}
-            {navbarContent && (
+            {navbarContent && !isMobile && (
                 <>
                     <div className="flex flex-none">{navbarContent}</div>
                     <div className="divider divider-horizontal m-1 h-8 self-center"></div>
