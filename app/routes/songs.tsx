@@ -1,34 +1,42 @@
-import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { LuCirclePlus } from 'react-icons/lu';
+import { useLoaderData } from 'react-router-dom';
 import ActionSelector from '@/components/ActionSelector';
-import Loading from '@/components/Loading';
 import NavBarLink from '@/components/NavBarLink';
 import SongCard from '@/components/SongCard';
 import { db } from '@/config/firebase';
-import { useError } from '@/contexts/ErrorContext';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavbar } from '@/contexts/NavbarContext';
-import { type Song, songConverter } from '@/firestore/songs';
-import { useToastHelpers } from '@/hooks/useToastHelpers';
-import { getTitle, sortBy } from '@/utils/general';
+import { songConverter } from '@/firestore/songs';
+import { loadAppData } from '@/loaders/appData';
+import { sortBy } from '@/utils/general';
 
 export { default as ErrorBoundary } from '@/components/ErrorBoundary';
 
 enum FilterOption {
+    Practice = 'Practice',
     Orphans = 'Orphans',
     Others = 'Others',
     All = 'All'
 }
 
+export async function clientLoader({ request }: { request: Request }) {
+    const { band } = await loadAppData(request),
+        songsSnapshot = await getDocs(collection(db, 'songs').withConverter(songConverter));
+
+    return {
+        allSongs: songsSnapshot.docs,
+        bandId: band.id,
+        bandDescription: band.data().description
+    };
+}
+
 export default function SongsIndex() {
-    const { band, canEdit, isMe } = useFirestore(),
+    const { allSongs, bandId, bandDescription } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+        { canEdit, isMe } = useFirestore(),
         { setNavbarContent } = useNavbar(),
-        { logError } = useError(),
-        { showError } = useToastHelpers(),
-        [filter, setFilter] = useState<FilterOption>(FilterOption.All),
-        [songs, setSongs] = useState<QueryDocumentSnapshot<Song>[]>([]),
-        [loading, setLoading] = useState(true);
+        [filter, setFilter] = useState<FilterOption>(FilterOption.All);
 
     useEffect(() => {
         if (canEdit) {
@@ -43,55 +51,32 @@ export default function SongsIndex() {
         return () => setNavbarContent(null);
     }, [setNavbarContent, canEdit]);
 
-    useEffect(() => {
-        const loadSongs = async () => {
-            try {
-                const data = await getDocs(collection(db, 'songs').withConverter(songConverter));
+    const filteredSongs = allSongs.filter((s) => {
+            const bands = s.data().bands;
 
-                setSongs(
-                    sortBy(
-                        data.docs.filter((s) => {
-                            const bands = s.data().bands;
-
-                            if (filter === FilterOption.All) {
-                                return bands.length > 0 && bands.find((b) => b.id === band.ref.id);
-                            }
-
-                            if (filter === FilterOption.Others) {
-                                return bands.length > 0 && !bands.find((b) => b.id === band.ref.id);
-                            }
-
-                            return bands.length === 0;
-                        }),
-                        'title'
-                    )
-                );
-            } catch (error) {
-                const errorMessage = error instanceof Error ? error.message : String(error);
-                logError('Failed to load songs', {
-                    details: errorMessage,
-                    source: 'firestore'
-                });
-                showError('Failed to load songs', {
-                    details: errorMessage,
-                    action: {
-                        label: 'Retry',
-                        onClick: () => loadSongs()
-                    }
-                });
-            } finally {
-                setLoading(false);
+            if (filter === FilterOption.All) {
+                return bands.length > 0 && bands.find((b) => b.id === bandId);
             }
-        };
 
-        void loadSongs();
-    }, [filter, band, logError, showError]);
+            if (filter === FilterOption.Others) {
+                return bands.length > 0 && !bands.find((b) => b.id === bandId);
+            }
 
-    if (loading) {
-        return <Loading />;
-    }
+            if (filter === FilterOption.Practice) {
+                return s.data().practice;
+            }
 
-    const pageTitle = getTitle('Songs', band);
+            return bands.length === 0;
+        }),
+        songs = sortBy(filteredSongs, 'title'),
+        pageTitle = `Songs | ${bandDescription}`;
+
+    const buttons = [
+        [FilterOption.Orphans, 'Orphans'],
+        [FilterOption.Others, 'Others'],
+        [FilterOption.Practice, 'Practice'],
+        [FilterOption.All, 'All', 'btn-sm filter-reset']
+    ] as const;
 
     return (
         <>
@@ -103,32 +88,20 @@ export default function SongsIndex() {
 
                         {isMe ? (
                             <div className="filter flex-none">
-                                <input
-                                    className="btn btn-sm"
-                                    type="radio"
-                                    name="song-type"
-                                    aria-label="Orphans"
-                                    onChange={() => setFilter(FilterOption.Orphans)}
-                                />
-                                <input
-                                    className="btn btn-sm"
-                                    type="radio"
-                                    name="song-type"
-                                    aria-label="Others"
-                                    onChange={() => setFilter(FilterOption.Others)}
-                                />
-                                <input
-                                    className="btn btn-square btn-sm filter-reset"
-                                    type="radio"
-                                    name="song-type"
-                                    aria-label="All"
-                                    onClick={() => setFilter(FilterOption.All)}
-                                />
+                                {buttons.map(([v, t, c = '']) => (
+                                    <input
+                                        className={`btn btn-sm ${c}`}
+                                        type="radio"
+                                        name="song-type"
+                                        aria-label={t}
+                                        key={v}
+                                        onChange={() => setFilter(v)}
+                                    />
+                                ))}
                             </div>
                         ) : null}
                     </div>
 
-                    {/* Responsive Sets Layout */}
                     <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                         {songs.length ? (
                             songs.map((song) => <SongCard song={song} key={song.id} />)

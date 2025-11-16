@@ -6,17 +6,13 @@ import {
     onAuthStateChanged,
     signInWithPopup
 } from 'firebase/auth';
-import type { QueryDocumentSnapshot } from 'firebase/firestore';
 import { createContext, useCallback, useContext, useState } from 'react';
 import app from '@/config/firebase';
-import type { Band } from '@/firestore/bands';
 import { User } from '@/firestore/songs';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
 import { useError } from './ErrorContext';
 
 interface FirestoreContextType {
-    band: QueryDocumentSnapshot<Band>;
-    bands: QueryDocumentSnapshot<Band>[];
     user: User;
     isMe: boolean;
     canEdit: boolean;
@@ -25,8 +21,6 @@ interface FirestoreContextType {
 }
 
 const FirestoreContext = createContext<FirestoreContextType>({
-    band: {} as QueryDocumentSnapshot<Band>,
-    bands: [],
     user: User.None,
     canEdit: false,
     isMe: false,
@@ -40,12 +34,10 @@ const FirestoreContext = createContext<FirestoreContextType>({
 
 interface FirestoreProviderProps {
     children: React.ReactNode;
-    band: QueryDocumentSnapshot<Band>;
-    bands: QueryDocumentSnapshot<Band>[];
     userCode: User;
 }
 
-export function FirestoreProvider({ children, band, bands, userCode }: FirestoreProviderProps) {
+export function FirestoreProvider({ children, userCode }: FirestoreProviderProps) {
     const [user, setUser] = useState<FirebaseUser | null>(null),
         [auth, setAuth] = useState<ReturnType<typeof getAuth> | null>(null),
         [canEdit, setCanEdit] = useState(false),
@@ -108,8 +100,6 @@ export function FirestoreProvider({ children, band, bands, userCode }: Firestore
     return (
         <FirestoreContext.Provider
             value={{
-                band,
-                bands,
                 user: userCode,
                 isMe: userCode === User.Me,
                 canEdit,

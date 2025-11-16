@@ -1,53 +1,42 @@
 import { doc, getDoc } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
 import { LuLogOut } from 'react-icons/lu';
-import { useParams } from 'react-router-dom';
-import Loading from '@/components/Loading';
+import { useLoaderData } from 'react-router-dom';
 import { db } from '@/config/firebase';
-import { useFirestore } from '@/contexts/Firestore';
 import { type Song, songConverter } from '@/firestore/songs';
-import { useToastHelpers } from '@/hooks/useToastHelpers';
+import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
 
-export default function RehearseSong() {
-    const { songId } = useParams(),
-        { showError } = useToastHelpers(),
-        { band } = useFirestore(),
-        [song, setSong] = useState<Song | null>(null),
-        [loading, setLoading] = useState(true);
+export { default as ErrorBoundary } from '@/components/ErrorBoundary';
 
+export async function clientLoader({
+    request,
+    params
+}: {
+    request: Request;
+    params: Record<string, string | undefined>;
+}): Promise<AppData & { songId: string; song: Song }> {
+    const appData = await loadAppData(request);
+
+    const { songId } = params;
     if (!songId) {
         throw new Error('No song ID provided.');
     }
 
-    useEffect(() => {
-        void (async () => {
-            try {
-                const songDoc = await getDoc(doc(db, 'songs', songId).withConverter(songConverter));
-                if (!songDoc.exists()) {
-                    throw new Error('Song not found.');
-                }
-
-                setSong(songDoc.data());
-            } catch (error) {
-                showError('Failed to load song', {
-                    details: error instanceof Error ? error.message : String(error)
-                });
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [songId, showError]);
-
-    if (loading) {
-        return <Loading />;
+    const song = await getDoc(doc(db, 'songs', songId).withConverter(songConverter));
+    if (!song.exists()) {
+        throw new Error('Song not found.');
     }
 
-    if (!song) {
-        return;
-    }
+    return {
+        ...appData,
+        songId,
+        song: song.data()
+    };
+}
 
-    const pageTitle = getTitle(`${song.title} - Rehearse`, band);
+export default function RehearseSong() {
+    const { song, band } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+        pageTitle = getTitle(`${song.title} - Rehearse`, band);
 
     return (
         <>

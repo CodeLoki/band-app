@@ -1,10 +1,9 @@
 import { type DocumentSnapshot, doc, getDoc } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import { LuFilePen, LuFileText } from 'react-icons/lu';
-import { useNavigate, useParams } from 'react-router-dom';
+import { redirect, useLoaderData } from 'react-router-dom';
 import ActionSelector from '@/components/ActionSelector';
-import Loading from '@/components/Loading';
 import NavBarButton from '@/components/NavBarButton';
 import NavBarLink from '@/components/NavBarLink';
 import SongCard from '@/components/SongCard';
@@ -15,7 +14,47 @@ import { type Gig, gigConverter } from '@/firestore/gigs';
 import type { Song } from '@/firestore/songs';
 import { calculateSetListLength } from '@/firestore/songs';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
+import { loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
+
+export { default as ErrorBoundary } from '@/components/ErrorBoundary';
+
+export async function clientLoader({
+    request,
+    params
+}: {
+    request: Request;
+    params: Record<string, string | undefined>;
+}) {
+    const { band } = await loadAppData(request);
+
+    const { gigId } = params;
+    if (!gigId) {
+        throw redirect('/');
+    }
+
+    const gigDoc = await getDoc(doc(db, 'gigs', gigId).withConverter(gigConverter));
+    if (!gigDoc.exists()) {
+        throw redirect('/');
+    }
+
+    const gigData = gigDoc.data();
+    if (!gigData) {
+        throw redirect('/');
+    }
+
+    // Fetch all songs in parallel
+    const [one, two, pocket] = await Promise.all(
+        [gigData.one, gigData.two, gigData.pocket].map((refs) => Promise.all(refs.map((ref) => getDoc(ref))))
+    );
+
+    return {
+        band,
+        gigId,
+        gig: gigDoc,
+        songs: { one, two, pocket }
+    };
+}
 
 function getSetListTitle(title: string, songs: DocumentSnapshot<Song>[]) {
     return `${title} (${calculateSetListLength(songs)})`;
@@ -48,9 +87,9 @@ function SetList({
     }
 
     // For single set mode, split songs into two columns
-    const midpoint = Math.ceil(songs.length / 2);
-    const firstColumn = songs.slice(0, midpoint);
-    const secondColumn = songs.slice(midpoint);
+    const midpoint = Math.ceil(songs.length / 2),
+        firstColumn = songs.slice(0, midpoint),
+        secondColumn = songs.slice(midpoint);
 
     return (
         <div key={title}>
@@ -74,6 +113,7 @@ function SetList({
 function getGigDate(gig: DocumentSnapshot<Gig>) {
     const gigData = gig.data();
     if (!gigData) return 'Unknown Date';
+
     return gigData.date.toDate().toLocaleDateString('en', {
         day: 'numeric',
         month: 'short',
@@ -82,24 +122,13 @@ function getGigDate(gig: DocumentSnapshot<Gig>) {
 }
 
 export default function GigRoute() {
-    const { gigId } = useParams(),
-        { canEdit, band } = useFirestore(),
-        navigate = useNavigate(),
-        [gig, setGig] = useState<DocumentSnapshot<Gig>>(),
-        [songs, setSongs] = useState<{
-            one: DocumentSnapshot<Song>[];
-            two: DocumentSnapshot<Song>[];
-            pocket: DocumentSnapshot<Song>[];
-        }>(),
-        [loading, setLoading] = useState(true),
+    const { band, gigId, gig, songs } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+        { canEdit } = useFirestore(),
         { showError, showSuccess } = useToastHelpers(),
         { setNavbarContent } = useNavbar();
 
     const generatePDF = useCallback(() => {
-        if (!gig || !songs) return;
-
         const gigData = gig.data();
-        if (!gigData) return;
 
         try {
             const date = getGigDate(gig),
@@ -195,61 +224,15 @@ export default function GigRoute() {
         return () => setNavbarContent(null);
     }, [setNavbarContent, canEdit, gigId, generatePDF]);
 
-    useEffect(() => {
-        if (!gigId) {
-            void navigate('/');
-            return;
-        }
-
-        void (async () => {
-            try {
-                const gigDoc = await getDoc(doc(db, 'gigs', gigId).withConverter(gigConverter));
-                if (!gigDoc.exists()) {
-                    void navigate('/');
-                    return;
-                }
-
-                setGig(gigDoc);
-
-                const gigData = gigDoc.data();
-                if (!gigData) {
-                    void navigate('/');
-                    return;
-                }
-
-                // Fetch all songs in parallel
-                const [one, two, pocket] = await Promise.all([
-                    Promise.all(gigData.one.map((ref) => getDoc(ref))),
-                    Promise.all(gigData.two.map((ref) => getDoc(ref))),
-                    Promise.all(gigData.pocket.map((ref) => getDoc(ref)))
-                ]);
-
-                setSongs({ one, two, pocket });
-                setLoading(false);
-            } catch (error) {
-                console.error('Error loading gig:', error);
-                void navigate('/');
-            }
-        })();
-    }, [gigId, navigate]);
-
-    if (loading) {
-        return <Loading />;
-    }
-
-    const gigData = gig?.data();
-    if (!gig || !gigData || !songs) {
-        return <Loading />;
-    }
-
-    const pageTitle = getTitle(`${gigData.venue} - ${getGigDate(gig)}`, band);
+    const gigTitle = `${gig.get('venue')} - ${getGigDate(gig)}`,
+        pageTitle = getTitle(gigTitle, band);
 
     return (
         <>
             <title>{pageTitle}</title>
             <div className="p-4">
                 <div className="flex flex-col gap-8">
-                    <h2 className="text-2xl font-bold mb-2">{pageTitle}</h2>
+                    <h2 className="text-2xl font-bold mb-2">{gigTitle}</h2>
 
                     {/* Responsive Sets Layout */}
                     {songs.two.length === 0 ? (

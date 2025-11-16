@@ -1,8 +1,7 @@
 import { addDoc, collection, type DocumentSnapshot, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { LuCircleX, LuSave, LuTrash2 } from 'react-icons/lu';
-import { Form, useParams } from 'react-router-dom';
-import Loading from '@/components/Loading';
+import { Form, useLoaderData } from 'react-router-dom';
 import NavBarButton from '@/components/NavBarButton';
 import Checklist from '@/components/ui/Checklist';
 import SelectInput from '@/components/ui/SelectInput';
@@ -22,7 +21,43 @@ import {
     startsWithMap
 } from '@/firestore/songs';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
+import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
+
+export { default as ErrorBoundary } from '@/components/ErrorBoundary';
+
+export async function clientLoader({
+    request,
+    params
+}: {
+    request: Request;
+    params: Record<string, string | undefined>;
+}): Promise<AppData & { songId: string; song?: DocumentSnapshot<Song> }> {
+    const appData = await loadAppData(request);
+
+    const { songId } = params;
+    if (!songId) {
+        throw new Error('No song ID provided.');
+    }
+
+    if (songId === 'new') {
+        return {
+            ...appData,
+            songId
+        };
+    }
+
+    const song = await getDoc(doc(db, 'songs', songId).withConverter(songConverter));
+    if (!song.exists()) {
+        throw new Error('Song not found.');
+    }
+
+    return {
+        ...appData,
+        songId,
+        song
+    };
+}
 
 function getOptionsFromMap(map: Map<number, string>, includeNone = false) {
     return Array.from(map.entries())
@@ -34,112 +69,97 @@ function getOptionsFromMap(map: Map<number, string>, includeNone = false) {
 }
 
 export default function EditSong() {
-    const { songId } = useParams(),
-        { canEdit, isMe, bands, band } = useFirestore(),
+    const { canEdit, isMe } = useFirestore(),
+        { songId, song, band, bands } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
         { setNavbarContent } = useNavbar(),
-        { showError, showSuccess } = useToastHelpers(),
-        [song, setSong] = useState<DocumentSnapshot<Song> | null>(null),
-        [loading, setLoading] = useState(true);
-
-    const formRef = useRef<HTMLFormElement>(null);
-    const deleteModalRef = useRef<HTMLDialogElement>(null);
-
-    const goBack = useCallback(() => {
-        window.history.back();
-    }, []);
-
-    // Form state - only for loading existing data
-    const [initialData, setInitialData] = useState<Partial<Song>>({
-        title: '',
-        artist: '',
-        length: 0,
-        startsWith: StartsWith.All,
-        features: Instrument.None,
-        solos: [],
-        groove: '',
-        ytMusic: '',
-        notes: '',
-        pad: DrumPad.None,
-        practice: false,
-        bands: [band]
-    });
+        { showError, showSuccess } = useToastHelpers();
 
     if (!canEdit || !isMe) {
         throw new Error('You do not have permission to edit songs.');
     }
 
-    if (!songId) {
-        throw new Error('No song ID provided.');
-    }
+    const formRef = useRef<HTMLFormElement>(null),
+        deleteModalRef = useRef<HTMLDialogElement>(null);
 
-    // Stable save function that doesn't depend on changing state
-    const performSave = useCallback(
-        async (currentSong: DocumentSnapshot<Song> | null) => {
-            if (formRef.current) {
-                try {
-                    const formData = new FormData(formRef.current);
+    const goBack = useCallback(() => {
+        window.history.back();
+    }, []);
 
-                    // Convert FormData to a regular object for easier handling
-                    const songData = {
-                        title: formData.get('title') as string,
-                        artist: formData.get('artist') as string,
-                        length: parseInt(formData.get('length') as string, 10) || 0,
-                        startsWith: parseInt(formData.get('startsWith') as string, 10) as StartsWith,
-                        features: parseInt(formData.get('features') as string, 10) as Instrument,
-                        solos: formData.getAll('solos').map((s) => parseInt(s as string, 10) as Instrument),
-                        groove: formData.get('groove') as string,
-                        ytMusic: formData.get('ytMusic') as string,
-                        notes: formData.get('notes') as string,
-                        pad: parseInt(formData.get('pad') as string, 10) as DrumPad,
-                        practice: formData.get('practice') === 'on',
-                        bands: formData
-                            .getAll('bands')
-                            .map((id) => bands.find((b) => b.id === id)?.ref)
-                            .filter((ref) => !!ref)
-                    };
+    const songData = song?.data() ?? ({} as Partial<Song>),
+        initialData: Partial<Song> = {
+            title: songData.title || '',
+            artist: songData.artist || '',
+            length: songData.length || 0,
+            startsWith: songData.startsWith || StartsWith.All,
+            features: songData.features || Instrument.None,
+            solos: songData.solos || [],
+            groove: songData.groove || '',
+            ytMusic: songData.ytMusic || '',
+            notes: songData.notes || '',
+            pad: songData.pad || DrumPad.None,
+            practice: songData.practice || false,
+            bands: songData.bands || [band]
+        };
 
-                    if (currentSong) {
-                        await updateDoc(currentSong.ref, songData);
-                        showSuccess(`Song ${songData.title} saved.`);
-                    } else {
-                        await addDoc(collection(db, 'songs'), songData);
-                        showSuccess(`Song ${songData.title} created.`);
-                    }
+    const handleSave = useCallback(async () => {
+        if (!formRef.current) return;
 
-                    goBack();
-                } catch (ex) {
-                    showError('DB operation failed.', {
-                        details: ex instanceof Error ? ex.message : String(ex)
-                    });
-                }
+        try {
+            const formData = new FormData(formRef.current);
+
+            // Convert FormData to a regular object for easier handling
+            const songData = {
+                title: formData.get('title') as string,
+                artist: formData.get('artist') as string,
+                length: parseInt(formData.get('length') as string, 10) || 0,
+                startsWith: parseInt(formData.get('startsWith') as string, 10) as StartsWith,
+                features: parseInt(formData.get('features') as string, 10) as Instrument,
+                solos: formData.getAll('solos').map((s) => parseInt(s as string, 10) as Instrument),
+                groove: formData.get('groove') as string,
+                ytMusic: formData.get('ytMusic') as string,
+                notes: formData.get('notes') as string,
+                pad: parseInt(formData.get('pad') as string, 10) as DrumPad,
+                practice: formData.get('practice') === 'on',
+                bands: formData
+                    .getAll('bands')
+                    .map((id) => bands.find((b) => b.id === id)?.ref)
+                    .filter((ref) => !!ref)
+            };
+
+            if (song) {
+                await updateDoc(song.ref, songData);
+                showSuccess(`Song ${songData.title} saved.`);
+            } else {
+                await addDoc(collection(db, 'songs'), songData);
+                showSuccess(`Song ${songData.title} created.`);
             }
-        },
-        [bands, showSuccess, showError, goBack]
-    );
 
-    // Wrapper that passes current state to the stable function
-    const handleSave = useCallback(() => {
-        void performSave(song);
-    }, [performSave, song]);
+            goBack();
+        } catch (ex) {
+            showError('DB operation failed.', {
+                details: ex instanceof Error ? ex.message : String(ex)
+            });
+        }
+    }, [song, bands, showSuccess, showError, goBack]);
 
     const handleDelete = useCallback(() => {
         deleteModalRef.current?.showModal();
     }, []);
 
     const performDelete = useCallback(async () => {
-        if (song) {
-            try {
-                // Close the modal first
-                deleteModalRef.current?.close();
+        if (!song) return;
 
-                await deleteDoc(song.ref);
-                showSuccess(`Song "${song.data()?.title}" was deleted.`);
-                goBack();
-            } catch (ex) {
-                showError('Failed to delete song.', {
-                    details: ex instanceof Error ? ex.message : String(ex)
-                });
-            }
+        try {
+            // Close the modal first
+            deleteModalRef.current?.close();
+
+            await deleteDoc(song.ref);
+            showSuccess(`Song "${song.data()?.title}" was deleted.`);
+            goBack();
+        } catch (ex) {
+            showError('Failed to delete song.', {
+                details: ex instanceof Error ? ex.message : String(ex)
+            });
         }
     }, [song, showSuccess, showError, goBack]);
 
@@ -165,49 +185,6 @@ export default function EditSong() {
 
         return () => setNavbarContent(null);
     }, [setNavbarContent, songId, handleSave, handleDelete, goBack]);
-
-    useEffect(() => {
-        void (async () => {
-            try {
-                if (songId === 'new') {
-                    return;
-                }
-
-                const songDoc = await getDoc(doc(db, 'songs', songId).withConverter(songConverter));
-                if (!songDoc.exists()) {
-                    throw new Error('Song not found.');
-                }
-
-                setSong(songDoc);
-
-                const songData = songDoc.data();
-                setInitialData({
-                    title: songData.title || '',
-                    artist: songData.artist || '',
-                    length: songData.length || 0,
-                    startsWith: songData.startsWith || StartsWith.All,
-                    features: songData.features || Instrument.None,
-                    solos: songData.solos || [],
-                    groove: songData.groove || '',
-                    ytMusic: songData.ytMusic || '',
-                    notes: songData.notes || '',
-                    pad: songData.pad || DrumPad.None,
-                    practice: songData.practice || false,
-                    bands: songData.bands || []
-                });
-            } catch (error) {
-                showError('Failed to load song', {
-                    details: error instanceof Error ? error.message : String(error)
-                });
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [songId, showError]);
-
-    if (loading) {
-        return <Loading />;
-    }
 
     const pageTitle = getTitle(song ? `Edit "${song.get('title')}` : 'Create Song', band);
 

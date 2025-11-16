@@ -1,61 +1,68 @@
 import clsx from 'clsx';
-import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
-import { useCallback } from 'react';
+import type { QueryDocumentSnapshot } from 'firebase/firestore';
+import { useCallback, useEffect, useState } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
+import { useNavigation } from 'react-router';
 import { Outlet, ScrollRestoration, useLoaderData, useNavigate } from 'react-router-dom';
-import { type Band, bandConverter } from '@/firestore/bands';
+import type { Band } from '@/firestore/bands';
 import NavLink from './components/NavLink';
 import Toasts from './components/Toasts';
-import { db } from './config/firebase';
 import { ActionModeProvider } from './contexts/ActionContext';
 import { ErrorProvider } from './contexts/ErrorContext';
 import { FirestoreProvider, useFirestore } from './contexts/Firestore';
 import { NavbarProvider, useNavbar } from './contexts/NavbarContext';
 import { NavigationProvider } from './contexts/NavigationContext';
 import { ToastProvider } from './contexts/ToastContext';
-import { User } from './firestore/songs';
+import type { User } from './firestore/songs';
+import { loadAppData } from './loaders/appData';
 
 import './tailwind.css';
 
 export { default as ErrorBoundary } from './components/ErrorBoundary';
 
 export async function clientLoader({ request }: { request: Request }) {
-    const url = new URL(request.url),
-        b = url.searchParams.get('b') ?? 'qRphnEOTg8GeDc0dQa4K',
-        u = url.searchParams.get('u') as User | null;
-
-    const bandsSnapshot = await getDocs(collection(db, 'bands').withConverter(bandConverter)),
-        bands = bandsSnapshot.docs,
-        band = bands.find((band) => band.id === b);
-
-    if (!band) {
-        throw new Error(`Band not found "${b}"`);
-    }
-
-    let user = User.None;
-    if (u && Object.values(User).includes(u)) {
-        user = u;
-    }
-
-    return { band, bands, user };
+    return loadAppData(request);
 }
 
 export default function Root() {
-    const appData = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>;
+    const appData = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+        [showLoading, setShowLoading] = useState(false),
+        navigation = useNavigation(),
+        isNavigating = navigation.state === 'loading';
+
+    useEffect(() => {
+        if (isNavigating) {
+            // Delay showing loading indicator by 250ms
+            const timer = setTimeout(() => {
+                setShowLoading(true);
+            }, 250);
+
+            return () => clearTimeout(timer);
+        } else {
+            // Hide immediately when done loading
+            setShowLoading(false);
+        }
+    }, [isNavigating]);
 
     return (
         <ToastProvider>
             <ErrorProvider>
                 <NavigationProvider>
                     <NavbarProvider>
-                        <FirestoreProvider band={appData.band} bands={appData.bands} userCode={appData.user}>
+                        <FirestoreProvider userCode={appData.user}>
                             <ActionModeProvider>
                                 <title>{appData.band.get('description')}</title>
-                                <div className="text-base-content bg-base-200 min-h-screen">
-                                    <NavbarContent />
-                                    <Outlet />
+                                <main className="text-base-content bg-base-200 min-h-screen">
+                                    <NavbarContent band={appData.band} bands={appData.bands} />
+                                    {showLoading ? (
+                                        <div className="min-h-screen flex items-center justify-center bg-base-200">
+                                            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+                                        </div>
+                                    ) : (
+                                        <Outlet />
+                                    )}
                                     <Toasts />
-                                </div>
+                                </main>
                                 <ScrollRestoration />
                             </ActionModeProvider>
                         </FirestoreProvider>
@@ -66,8 +73,8 @@ export default function Root() {
     );
 }
 
-function BandName() {
-    const { isMe, canEdit, login, user, band, bands } = useFirestore(),
+function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
+    const { isMe, canEdit, login, user } = useFirestore(),
         navigate = useNavigate(),
         cssBandName = 'btn btn-neutral text-lg',
         { description } = band.data();
@@ -124,13 +131,13 @@ function BandName() {
     );
 }
 
-function NavbarContent() {
+function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
     const { navbarContent } = useNavbar();
 
     return (
         <div className="navbar sticky top-0 z-50 bg-neutral shadow-md items-center gap-1 py-0 min-h-auto">
             <div className="flex-1">
-                <BandName />
+                <BandName band={band} bands={bands} />
             </div>
 
             {/* Dynamic content from routes */}

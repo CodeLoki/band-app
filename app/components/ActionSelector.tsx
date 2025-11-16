@@ -24,10 +24,10 @@ const commonButtons: [string, ActionMode][] = [
 ];
 
 export default function Loading() {
-    const { isMe, canEdit } = useFirestore();
-    const { mode, setActionMode } = useActionContext();
-    const [icon, setIcon] = useState(getIcon(mode));
-    const [buttons, setButtons] = useState<[string, ActionMode][]>([]);
+    const { isMe, canEdit } = useFirestore(),
+        { mode, setActionMode } = useActionContext(),
+        [icon, setIcon] = useState(getIcon(mode)),
+        [buttons, setButtons] = useState<[string, ActionMode][]>([]);
 
     useEffect(() => {
         setIcon(getIcon(mode));

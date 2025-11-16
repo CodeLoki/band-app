@@ -12,10 +12,9 @@ import {
     updateDoc,
     where
 } from 'firebase/firestore';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LuCircleX, LuSave, LuTrash2 } from 'react-icons/lu';
-import { Form, useParams } from 'react-router-dom';
-import Loading from '@/components/Loading';
+import { Form, useLoaderData } from 'react-router-dom';
 import NavBarButton from '@/components/NavBarButton';
 import ShoppingCart from '@/components/ShoppingCart';
 import DateInput from '@/components/ui/DateInput';
@@ -28,7 +27,82 @@ import type { Song } from '@/firestore/songs';
 import { calculateSetListLength, songConverter } from '@/firestore/songs';
 import { useNavigateWithParams } from '@/hooks/useNavigateWithParams';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
+import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle, sortBy } from '@/utils/general';
+
+export { default as ErrorBoundary } from '@/components/ErrorBoundary';
+
+export async function clientLoader({
+    request,
+    params
+}: {
+    request: Request;
+    params: Record<string, string | undefined>;
+}): Promise<
+    AppData & {
+        gigId: string;
+        songs: DocumentSnapshot<Song>[];
+        gig?: DocumentSnapshot<Gig>;
+        gigData?: Gig;
+        one?: DocumentSnapshot<Song>[];
+        two?: DocumentSnapshot<Song>[];
+        pocket?: DocumentSnapshot<Song>[];
+    }
+> {
+    const appData = await loadAppData(request),
+        { gigId } = params;
+
+    if (!gigId) {
+        throw new Error('No gig ID provided.');
+    }
+
+    const songs = sortBy(
+        (
+            await getDocs(
+                query(collection(db, 'songs'), where('bands', 'array-contains', appData.band.ref)).withConverter(
+                    songConverter
+                )
+            )
+        ).docs,
+        'title'
+    );
+
+    if (gigId === 'new') {
+        return {
+            ...appData,
+            songs,
+            gigId
+        };
+    }
+
+    const gig = await getDoc(doc(db, 'gigs', gigId).withConverter(gigConverter)),
+        gigData = gig?.data();
+
+    if (!gig || !gigData) {
+        return {
+            ...appData,
+            songs,
+            gigId,
+            gig
+        };
+    }
+
+    // Fetch all songs in parallel
+    const [one, two, pocket] = await Promise.all(
+        [gigData.one, gigData.two, gigData.pocket].map((refs) => Promise.all(refs.map((ref) => getDoc(ref))))
+    );
+
+    return {
+        ...appData,
+        songs,
+        gigId,
+        gig,
+        gigData,
+        one,
+        two,
+        pocket
+    };
+}
 
 function getGigTitle(gig?: { date: Timestamp; venue: string }) {
     const date = gig?.date.toDate() ?? new Date(),
@@ -47,22 +121,19 @@ function getSongsFromDocs(docs: DocumentSnapshot<Song>[]) {
 }
 
 export default function EditGigTest() {
-    const { gigId } = useParams(),
-        { band, canEdit, isMe } = useFirestore(),
+    const { band, songs, gigId, gig, gigData, one, two, pocket } = useLoaderData() as Awaited<
+        ReturnType<typeof clientLoader>
+    >;
+
+    const { canEdit, isMe } = useFirestore(),
         { setNavbarContent } = useNavbar(),
         { showError, showSuccess } = useToastHelpers(),
         { navigate } = useNavigateWithParams(),
-        [gig, setGig] = useState<DocumentSnapshot<Gig> | null>(null),
-        [songs, setSongs] = useState<DocumentSnapshot<Song>[]>([]),
-        [loading, setLoading] = useState(true),
-        [currentSetOne, setCurrentSetOne] = useState<DocumentSnapshot<Song>[]>([]),
-        [currentSetTwo, setCurrentSetTwo] = useState<DocumentSnapshot<Song>[]>([]),
-        [currentPocket, setCurrentPocket] = useState<DocumentSnapshot<Song>[]>([]),
+        [currentSetOne, setCurrentSetOne] = useState<DocumentSnapshot<Song>[]>(one ?? []),
+        [currentSetTwo, setCurrentSetTwo] = useState<DocumentSnapshot<Song>[]>(two ?? []),
+        [currentPocket, setCurrentPocket] = useState<DocumentSnapshot<Song>[]>(pocket ?? []),
         formRef = useRef<HTMLFormElement>(null),
         deleteModalRef = useRef<HTMLDialogElement>(null);
-
-    // Stabilize band reference to prevent endless loops
-    const bandRef = useMemo(() => band.ref, [band]);
 
     const getSnapshotsFromSongs = useCallback(
         (songsToConvert: Song[]) => {
@@ -73,32 +144,13 @@ export default function EditGigTest() {
         [songs]
     );
 
-    const [initialData, setInitialData] = useState<
-        Pick<Partial<Gig>, 'date' | 'venue'> & {
-            one: DocumentSnapshot<Song>[];
-            two: DocumentSnapshot<Song>[];
-            pocket: DocumentSnapshot<Song>[];
-        }
-    >({
-        date: undefined,
-        venue: '',
-        one: [],
-        two: [],
-        pocket: []
-    });
-
     if (!canEdit || !isMe) {
         throw new Error('You do not have permission to edit gigs.');
-    }
-
-    if (!gigId) {
-        throw new Error('No gig ID provided.');
     }
 
     const performDelete = useCallback(async () => {
         if (gig) {
             try {
-                // Close the modal first
                 deleteModalRef.current?.close();
                 await deleteDoc(gig.ref);
                 showSuccess(`Gig "${getGigTitle(gig.data())}" was deleted.`);
@@ -189,67 +241,6 @@ export default function EditGigTest() {
         return () => setNavbarContent(null);
     }, [setNavbarContent, gigId, handleSave, handleDelete, navigate]);
 
-    useEffect(() => {
-        void (async () => {
-            try {
-                const allSongs = await getDocs(
-                    query(collection(db, 'songs'), where('bands', 'array-contains', bandRef)).withConverter(
-                        songConverter
-                    )
-                );
-
-                setSongs(sortBy(allSongs.docs, 'title'));
-
-                if (gigId === 'new') {
-                    return;
-                }
-
-                const gigDoc = await getDoc(doc(db, 'gigs', gigId).withConverter(gigConverter));
-                if (!gigDoc) {
-                    navigate('/');
-                    return;
-                }
-
-                setGig(gigDoc);
-
-                const gigData = gigDoc.data();
-                if (!gigData) {
-                    return;
-                }
-
-                // Fetch all songs in parallel
-                const [one, two, pocket] = await Promise.all([
-                    Promise.all(gigData.one.map((ref) => getDoc(ref))),
-                    Promise.all(gigData.two.map((ref) => getDoc(ref))),
-                    Promise.all(gigData.pocket.map((ref) => getDoc(ref)))
-                ]);
-
-                // Extract and set initial selections as DocumentSnapshots
-                setCurrentSetOne(one ?? []);
-                setCurrentSetTwo(two ?? []);
-                setCurrentPocket(pocket ?? []);
-
-                setInitialData({
-                    date: gigData.date,
-                    venue: gigData.venue,
-                    one: one,
-                    two: two,
-                    pocket: pocket
-                });
-            } catch (error) {
-                showError('Failed to load gig', {
-                    details: error instanceof Error ? error.message : String(error)
-                });
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [bandRef, gigId, showError, navigate]);
-
-    if (loading) {
-        return <Loading />;
-    }
-
     // Create a single pool of available songs that excludes any song already assigned to any set
     const availableSongs = songs.filter(
         (song) =>
@@ -258,7 +249,7 @@ export default function EditGigTest() {
             !currentPocket.some(({ id }) => id === song.id)
     );
 
-    const pageTitle = getTitle(gigId === 'new' ? 'Create Gig' : `Edit "${initialData.venue}"`, band);
+    const pageTitle = getTitle(gigId === 'new' ? 'Create Gig' : `Edit "${gigData?.venue ?? ''}"`, band);
 
     return (
         <>
@@ -266,8 +257,8 @@ export default function EditGigTest() {
             <div className="m-8">
                 <div className="card card-border bg-neutral shadow-xl">
                     <Form ref={formRef} className="card-body space-y-4">
-                        <DateInput label="Date" name="date" currentValue={initialData.date} />
-                        <TextInput label="Venue" name="venue" defaultValue={initialData.venue} />
+                        <DateInput label="Date" name="date" currentValue={gigData?.date} />
+                        <TextInput label="Venue" name="venue" defaultValue={gigData?.venue ?? ''} />
 
                         <h2 className="card-title mt-4">Set One Songs ({calculateSetListLength(currentSetOne)})</h2>
                         <ShoppingCart

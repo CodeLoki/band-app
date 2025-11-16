@@ -1,14 +1,29 @@
 import { collection, getDocs, type QueryDocumentSnapshot, query, where } from 'firebase/firestore';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import { LuCirclePlus } from 'react-icons/lu';
-import Loading from '@/components/Loading';
+import { useLoaderData } from 'react-router-dom';
 import NavBarLink from '@/components/NavBarLink';
 import NavLink from '@/components/NavLink';
 import { db } from '@/config/firebase';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavbar } from '@/contexts/NavbarContext';
 import { type Gig, gigConverter } from '@/firestore/gigs';
+import { loadAppData } from '@/loaders/appData';
 import { CardStyle, getTitle, sortBy } from '@/utils/general';
+
+export async function clientLoader({ request }: { request: Request }) {
+    const { band } = await loadAppData(request);
+
+    // Fetch gigs for this band
+    const gigsSnapshot = await getDocs(
+        query(collection(db, 'gigs'), where('band', '==', band.ref)).withConverter(gigConverter)
+    );
+
+    return {
+        band,
+        gigs: sortBy(gigsSnapshot.docs, 'date')
+    };
+}
 
 const renderGig = (gig: QueryDocumentSnapshot<Gig>) => {
     const data = gig.data(),
@@ -25,25 +40,9 @@ const renderGig = (gig: QueryDocumentSnapshot<Gig>) => {
 };
 
 export default function Home() {
-    const { band, canEdit } = useFirestore();
-    const [gigs, setGigs] = useState<QueryDocumentSnapshot<Gig>[]>([]);
-    const { setNavbarContent } = useNavbar();
-    const [loading, setLoading] = useState(true);
-
-    // biome-ignore lint/correctness/useExhaustiveDependencies: band.ref is an object, memoize based on band.id to prevent infinite loops
-    const bandRef = useMemo(() => band.ref, [band.id]);
-
-    useEffect(() => {
-        setLoading(true);
-        void (async () => {
-            const gigs = await getDocs(
-                query(collection(db, 'gigs'), where('band', '==', bandRef)).withConverter(gigConverter)
-            );
-
-            setGigs(sortBy(gigs.docs, 'date'));
-            setLoading(false);
-        })();
-    }, [bandRef]);
+    const { band, gigs } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+        { canEdit } = useFirestore(),
+        { setNavbarContent } = useNavbar();
 
     useEffect(() => {
         if (canEdit) {
@@ -57,10 +56,6 @@ export default function Home() {
 
         return () => setNavbarContent(null);
     }, [setNavbarContent, canEdit]);
-
-    if (loading) {
-        return <Loading />;
-    }
 
     const pageTitle = getTitle('Home', band);
 
