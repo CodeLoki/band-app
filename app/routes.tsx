@@ -1,5 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-import Root, { ErrorBoundary as RootErrorBoundary, clientLoader as rootLoader } from './root';
+import Root, { HydrateFallback, ErrorBoundary as RootErrorBoundary, clientLoader as rootLoader } from './root';
 import NotFound from './routes/404';
 import EditGig, { clientLoader as editGigLoader } from './routes/edit-gig';
 import EditSong, { clientLoader as editSongLoader } from './routes/edit-song';
@@ -13,6 +13,7 @@ const router = createBrowserRouter([
         path: '/',
         element: <Root />,
         errorElement: <RootErrorBoundary />,
+        hydrateFallbackElement: <HydrateFallback />,
         loader: rootLoader,
         children: [
             {

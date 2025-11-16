@@ -17,8 +17,6 @@ import { useToastHelpers } from '@/hooks/useToastHelpers';
 import { loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
 
-export { default as ErrorBoundary } from '@/components/ErrorBoundary';
-
 export async function clientLoader({
     request,
     params

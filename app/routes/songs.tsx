@@ -12,8 +12,6 @@ import { songConverter } from '@/firestore/songs';
 import { loadAppData } from '@/loaders/appData';
 import { sortBy } from '@/utils/general';
 
-export { default as ErrorBoundary } from '@/components/ErrorBoundary';
-
 enum FilterOption {
     Practice = 'Practice',
     Orphans = 'Orphans',
