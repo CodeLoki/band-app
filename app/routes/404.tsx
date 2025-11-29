@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { href, Link } from 'react-router';
 
 export default function NotFound() {
     return (
@@ -7,7 +7,7 @@ export default function NotFound() {
                 <div className="max-w-md">
                     <h1 className="text-5xl font-bold">404</h1>
                     <p className="py-6">Page not found. The page you are looking for does not exist.</p>
-                    <Link to="/" className="btn btn-primary">
+                    <Link to={href('/')} className="btn btn-primary">
                         Go Home
                     </Link>
                 </div>

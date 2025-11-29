@@ -2,7 +2,7 @@ import { type DocumentSnapshot, doc, getDoc } from 'firebase/firestore';
 import { jsPDF } from 'jspdf';
 import { useCallback, useEffect } from 'react';
 import { LuFilePen, LuFileText } from 'react-icons/lu';
-import { redirect, useLoaderData } from 'react-router-dom';
+import { redirect, useLoaderData } from 'react-router';
 import ActionSelector from '@/components/ActionSelector';
 import NavBarButton from '@/components/NavBarButton';
 import NavBarLink from '@/components/NavBarLink';
@@ -14,8 +14,18 @@ import { type Gig, gigConverter } from '@/firestore/gigs';
 import type { Song } from '@/firestore/songs';
 import { calculateSetListLength } from '@/firestore/songs';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
-import { loadAppData } from '@/loaders/appData';
+import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
+
+interface GigLoaderData extends Pick<AppData, 'band'> {
+    gigId: string;
+    gig: DocumentSnapshot<Gig>;
+    songs: {
+        one: DocumentSnapshot<Song>[];
+        two: DocumentSnapshot<Song>[];
+        pocket: DocumentSnapshot<Song>[];
+    };
+}
 
 export async function clientLoader({
     request,
@@ -120,13 +130,13 @@ function getGigDate(gig: DocumentSnapshot<Gig>) {
 }
 
 export default function GigRoute() {
-    const { band, gigId, gig, songs } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+    const { band, gigId, gig, songs } = useLoaderData<GigLoaderData>(),
         { canEdit } = useFirestore(),
         { showError, showSuccess } = useToastHelpers(),
         { setNavbarContent } = useNavbar();
 
     const generatePDF = useCallback(() => {
-        const gigData = gig.data();
+        const venue = gig.get('venue');
 
         try {
             const date = getGigDate(gig),
@@ -137,7 +147,7 @@ export default function GigRoute() {
 
             const fnRenderHeader = (): number => {
                 pdf.setFont('Helvetica', 'bold');
-                pdf.text(gigData.venue, lineHeight, 10);
+                pdf.text(venue, lineHeight, 10);
                 pdf.text(date, 200, 10, {
                     align: 'right'
                 });
@@ -193,7 +203,7 @@ export default function GigRoute() {
                 fnAddSetList('Pocket', pocket, 0, baseY);
             }
 
-            pdf.save(`${gigData.venue}-${date}.pdf`);
+            pdf.save(`${venue}-${date}.pdf`);
             showSuccess('PDF generated successfully!');
         } catch (ex) {
             showError('Failed to generate PDF', {

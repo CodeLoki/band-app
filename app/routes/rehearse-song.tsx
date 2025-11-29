@@ -1,10 +1,15 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { LuLogOut } from 'react-icons/lu';
-import { useLoaderData } from 'react-router-dom';
+import { useLoaderData } from 'react-router';
 import { db } from '@/config/firebase';
 import { type Song, songConverter } from '@/firestore/songs';
 import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
+
+interface RehearseSongLoaderData extends AppData {
+    songId: string;
+    song: Song;
+}
 
 export async function clientLoader({
     request,
@@ -33,7 +38,7 @@ export async function clientLoader({
 }
 
 export default function RehearseSong() {
-    const { song, band } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+    const { song, band } = useLoaderData<RehearseSongLoaderData>(),
         pageTitle = getTitle(`${song.title} - Rehearse`, band);
 
     return (

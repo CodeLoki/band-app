@@ -1,22 +1,28 @@
-import { collection, getDocs } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
+import { useEffect } from 'react';
 import { LuCirclePlus } from 'react-icons/lu';
-import { useLoaderData } from 'react-router-dom';
+import { useLoaderData, useSearchParams } from 'react-router';
 import ActionSelector from '@/components/ActionSelector';
 import NavBarLink from '@/components/NavBarLink';
 import SongCard from '@/components/SongCard';
 import { db } from '@/config/firebase';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavbar } from '@/contexts/NavbarContext';
-import { songConverter } from '@/firestore/songs';
+import { type Song, songConverter } from '@/firestore/songs';
 import { loadAppData } from '@/loaders/appData';
 import { sortBy } from '@/utils/general';
 
+interface SongsLoaderData {
+    allSongs: QueryDocumentSnapshot<Song>[];
+    bandId: string;
+    bandDescription: string;
+}
+
 enum FilterOption {
-    Practice = 'Practice',
-    Orphans = 'Orphans',
-    Others = 'Others',
-    All = 'All'
+    Practice = 'practice',
+    Orphans = 'orphans',
+    Others = 'others',
+    All = 'all'
 }
 
 export async function clientLoader({ request }: { request: Request }) {
@@ -31,10 +37,11 @@ export async function clientLoader({ request }: { request: Request }) {
 }
 
 export default function SongsIndex() {
-    const { allSongs, bandId, bandDescription } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+    const { allSongs, bandId, bandDescription } = useLoaderData<SongsLoaderData>(),
         { canEdit, isMe } = useFirestore(),
         { setNavbarContent } = useNavbar(),
-        [filter, setFilter] = useState<FilterOption>(FilterOption.All);
+        [searchParams, setSearchParams] = useSearchParams(),
+        filter = (searchParams.get('filter') as FilterOption) ?? FilterOption.All;
 
     useEffect(() => {
         if (canEdit) {
@@ -93,7 +100,13 @@ export default function SongsIndex() {
                                         name="song-type"
                                         aria-label={t}
                                         key={v}
-                                        onChange={() => setFilter(v)}
+                                        value={v}
+                                        checked={filter === v}
+                                        onChange={() => {
+                                            const next = new URLSearchParams(searchParams.toString());
+                                            next.set('filter', v);
+                                            setSearchParams(next);
+                                        }}
                                     />
                                 ))}
                             </div>

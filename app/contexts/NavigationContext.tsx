@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 interface NavigationContextType {
     navigateWithParams: (path: string) => void;

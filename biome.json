@@ -21,35 +21,10 @@
         "enabled": true,
         "rules": {
             "recommended": true,
-            "a11y": {
-                "recommended": true,
-                "noSvgWithoutTitle": "off"
-            },
-            "complexity": {
-                "recommended": true
-            },
-            "correctness": {
-                "recommended": true,
-                "noEmptyPattern": "off"
-            },
             "nursery": {
                 "recommended": true,
                 "noFloatingPromises": "error",
                 "noMisusedPromises": "error"
-            },
-            "performance": {
-                "recommended": true
-            },
-            "security": {
-                "recommended": true
-            },
-            "style": {
-                "recommended": true
-            },
-            "suspicious": {
-                "recommended": true,
-                "noUnknownAtRules": "off",
-                "noDebugger": "off"
             }
         }
     },

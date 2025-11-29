@@ -38,11 +38,6 @@
         "cSpell.words": ["firestore", "Songsterr"]
     },
     "extensions": {
-        "recommendations": [
-            "biomejs.biome",
-            "ms-vscode.vscode-typescript-next",
-            "bradlc.vscode-tailwindcss",
-            "ms-vscode.vscode-json"
-        ]
+        "recommendations": ["biomejs.biome", "bradlc.vscode-tailwindcss", "ms-vscode.vscode-json"]
     }
 }

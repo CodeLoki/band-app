@@ -1,5 +1,4 @@
-import type { LinkProps } from 'react-router-dom';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, type LinkProps, useSearchParams } from 'react-router';
 
 /**
  * Helper function to add query parameters to a URL.

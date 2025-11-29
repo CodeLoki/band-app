@@ -1,15 +1,19 @@
 import { collection, getDocs, type QueryDocumentSnapshot, query, where } from 'firebase/firestore';
 import { useEffect } from 'react';
 import { LuCirclePlus } from 'react-icons/lu';
-import { useLoaderData } from 'react-router-dom';
+import { useLoaderData } from 'react-router';
 import NavBarLink from '@/components/NavBarLink';
 import NavLink from '@/components/NavLink';
 import { db } from '@/config/firebase';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavbar } from '@/contexts/NavbarContext';
 import { type Gig, gigConverter } from '@/firestore/gigs';
-import { loadAppData } from '@/loaders/appData';
+import { type AppData, loadAppData } from '@/loaders/appData';
 import { CardStyle, getTitle, sortBy } from '@/utils/general';
+
+interface HomeLoaderData extends Pick<AppData, 'band'> {
+    gigs: QueryDocumentSnapshot<Gig>[];
+}
 
 export async function clientLoader({ request }: { request: Request }) {
     const { band } = await loadAppData(request);
@@ -40,7 +44,7 @@ const renderGig = (gig: QueryDocumentSnapshot<Gig>) => {
 };
 
 export default function Home() {
-    const { band, gigs } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+    const { band, gigs } = useLoaderData<HomeLoaderData>(),
         { canEdit } = useFirestore(),
         { setNavbarContent } = useNavbar();
 

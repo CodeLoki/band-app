@@ -1,5 +1,4 @@
-import { isRouteErrorResponse, useRouteError } from 'react-router';
-import { useNavigate } from 'react-router-dom';
+import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router';
 
 export default function ErrorBoundary() {
     const error = useRouteError();

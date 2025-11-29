@@ -1,7 +1,7 @@
 import { addDoc, collection, type DocumentSnapshot, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useCallback, useEffect, useRef } from 'react';
 import { LuCircleX, LuSave, LuTrash2 } from 'react-icons/lu';
-import { Form, useLoaderData } from 'react-router-dom';
+import { Form, useLoaderData } from 'react-router';
 import NavBarButton from '@/components/NavBarButton';
 import Checklist from '@/components/ui/Checklist';
 import SelectInput from '@/components/ui/SelectInput';
@@ -24,13 +24,18 @@ import { useToastHelpers } from '@/hooks/useToastHelpers';
 import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
 
+interface EditSongLoaderData extends AppData {
+    songId: string;
+    song?: DocumentSnapshot<Song>;
+}
+
 export async function clientLoader({
     request,
     params
 }: {
     request: Request;
     params: Record<string, string | undefined>;
-}): Promise<AppData & { songId: string; song?: DocumentSnapshot<Song> }> {
+}) {
     const appData = await loadAppData(request);
 
     const { songId } = params;
@@ -68,7 +73,7 @@ function getOptionsFromMap(map: Map<number, string>, includeNone = false) {
 
 export default function EditSong() {
     const { canEdit, isMe } = useFirestore(),
-        { songId, song, band, bands } = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+        { songId, song, band, bands } = useLoaderData<EditSongLoaderData>(),
         { setNavbarContent } = useNavbar(),
         { showError, showSuccess } = useToastHelpers();
 
@@ -117,7 +122,7 @@ export default function EditSong() {
                 ytMusic: formData.get('ytMusic') as string,
                 notes: formData.get('notes') as string,
                 pad: parseInt(formData.get('pad') as string, 10) as DrumPad,
-                practice: formData.get('practice') === 'on',
+                practice: !!formData.get('practice'),
                 bands: formData
                     .getAll('bands')
                     .map((id) => bands.find((b) => b.id === id)?.ref)

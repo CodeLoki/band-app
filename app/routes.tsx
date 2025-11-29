@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router';
 import Root, { HydrateFallback, ErrorBoundary as RootErrorBoundary, clientLoader as rootLoader } from './root';
 import NotFound from './routes/404';
 import EditGig, { clientLoader as editGigLoader } from './routes/edit-gig';

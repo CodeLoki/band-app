@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { LuCircleX, LuSave, LuTrash2 } from 'react-icons/lu';
-import { Form, useLoaderData } from 'react-router-dom';
+import { Form, useLoaderData } from 'react-router';
 import NavBarButton from '@/components/NavBarButton';
 import ShoppingCart from '@/components/ShoppingCart';
 import DateInput from '@/components/ui/DateInput';
@@ -30,23 +30,23 @@ import { useToastHelpers } from '@/hooks/useToastHelpers';
 import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle, sortBy } from '@/utils/general';
 
+interface EditGigLoaderData extends AppData {
+    gigId: string;
+    songs: DocumentSnapshot<Song>[];
+    gig?: DocumentSnapshot<Gig>;
+    gigData?: Gig;
+    one?: DocumentSnapshot<Song>[];
+    two?: DocumentSnapshot<Song>[];
+    pocket?: DocumentSnapshot<Song>[];
+}
+
 export async function clientLoader({
     request,
     params
 }: {
     request: Request;
     params: Record<string, string | undefined>;
-}): Promise<
-    AppData & {
-        gigId: string;
-        songs: DocumentSnapshot<Song>[];
-        gig?: DocumentSnapshot<Gig>;
-        gigData?: Gig;
-        one?: DocumentSnapshot<Song>[];
-        two?: DocumentSnapshot<Song>[];
-        pocket?: DocumentSnapshot<Song>[];
-    }
-> {
+}) {
     const appData = await loadAppData(request),
         { gigId } = params;
 
@@ -119,9 +119,7 @@ function getSongsFromDocs(docs: DocumentSnapshot<Song>[]) {
 }
 
 export default function EditGigTest() {
-    const { band, songs, gigId, gig, gigData, one, two, pocket } = useLoaderData() as Awaited<
-        ReturnType<typeof clientLoader>
-    >;
+    const { band, songs, gigId, gig, gigData, one, two, pocket } = useLoaderData<EditGigLoaderData>();
 
     const { canEdit, isMe } = useFirestore(),
         { setNavbarContent } = useNavbar(),

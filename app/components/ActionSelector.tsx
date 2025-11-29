@@ -30,10 +30,6 @@ export default function Loading() {
         [buttons, setButtons] = useState<[string, ActionMode][]>([]);
 
     useEffect(() => {
-        setIcon(getIcon(mode));
-    }, [mode]);
-
-    useEffect(() => {
         const btns = [...commonButtons];
 
         if (canEdit) {
@@ -53,6 +49,7 @@ export default function Loading() {
     function handleClick(mode: ActionMode, event?: MouseEvent<HTMLButtonElement>) {
         event?.currentTarget.blur();
         setActionMode(mode);
+        setIcon(getIcon(mode));
     }
 
     return (

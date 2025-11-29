@@ -2,8 +2,7 @@ import clsx from 'clsx';
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
 import { useCallback } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
-import { useNavigation } from 'react-router';
-import { Outlet, ScrollRestoration, useLoaderData, useNavigate } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLoaderData, useNavigate, useNavigation } from 'react-router';
 import Loading from '@/components/Loading';
 import NavLink from '@/components/NavLink';
 import Toasts from '@/components/Toasts';
@@ -16,8 +15,7 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import type { Band } from '@/firestore/bands';
 import type { User } from '@/firestore/songs';
 import { useIsMobile } from '@/hooks/useIsMobile';
-import { loadAppData } from '@/loaders/appData';
-
+import { type AppData, loadAppData } from '@/loaders/appData';
 import './tailwind.css';
 
 export { default as ErrorBoundary } from '@/components/ErrorBoundary';
@@ -31,7 +29,7 @@ export async function clientLoader({ request }: { request: Request }) {
 }
 
 export default function Root() {
-    const appData = useLoaderData() as Awaited<ReturnType<typeof clientLoader>>,
+    const appData = useLoaderData<AppData>(),
         navigation = useNavigation(),
         isNavigating = navigation.state === 'loading';
 

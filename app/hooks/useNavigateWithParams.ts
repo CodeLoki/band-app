@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { type NavigateOptions, useNavigate, useSearchParams } from 'react-router-dom';
+import { type NavigateOptions, useNavigate, useSearchParams } from 'react-router';
 import { addQueryParamsToUrl } from '@/components/NavLink';
 
 /**
@@ -14,12 +14,10 @@ export function useNavigateWithParams() {
     const navigateRef = useRef(navigate);
 
     if (searchParamsRef.current !== searchParams) {
-        console.log('🔄 searchParams changed:', searchParams.toString());
         searchParamsRef.current = searchParams;
     }
 
     if (navigateRef.current !== navigate) {
-        console.log('🔄 navigate function changed');
         navigateRef.current = navigate;
     }
 
