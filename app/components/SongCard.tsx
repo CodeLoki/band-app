@@ -199,34 +199,43 @@ export default function SongCard({ song }: { song: DocumentSnapshot<Song> }) {
     };
 
     return (
-        <button
-            key={song.id}
-            type="button"
-            className={CardStyle}
-            onClick={handleClick}
-            aria-label={`${songData.title} by ${songData.artist}`}
-        >
-            <div className="card-body p-6">
-                <div className="text-center text-base-content">
-                    <div className="relative">
-                        <h3 className="flex-1 card-title justify-center">{songData.title}</h3>
-                        {isMe && songData.practice ? <LuFlag className="flex-none absolute right-0 top-0" /> : null}
-                    </div>
-                    <p className="text-sm opacity-70">{songData.artist}</p>
+        <div className="indicator w-full">
+            {isMe && songData.practice ? (
+                <div
+                    className="indicator-item bg-accent text-accent-foreground rounded-full p-2 right-6 top-6"
+                    title="Flagged for Practice"
+                >
+                    <LuFlag />
                 </div>
-
-                <div className="flex flex-wrap gap-2 justify-center mt-1">
-                    {notes.map((note, index) => (
-                        <div
-                            key={`${song.id}-note-${index}`}
-                            className={`rounded-md badge badge-sm ${note.color} gap-1`}
-                        >
-                            <note.icon className="h-3 w-3" />
-                            {note.text}
+            ) : null}
+            <button
+                key={song.id}
+                type="button"
+                className={CardStyle}
+                onClick={handleClick}
+                aria-label={`${songData.title} by $songData.artist`}
+            >
+                <div className="card-body p-6">
+                    <div className="text-center text-base-content">
+                        <div className="relative">
+                            <h3 className="flex-1 card-title justify-center">{songData.title}</h3>
                         </div>
-                    ))}
+                        <p className="text-sm opacity-70">{songData.artist}</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 justify-center mt-1">
+                        {notes.map((note, index) => (
+                            <div
+                                key={`${song.id}-note-${index}`}
+                                className={`rounded-md badge badge-sm ${note.color} gap-1`}
+                            >
+                                <note.icon className="h-3 w-3" />
+                                {note.text}
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
-        </button>
+            </button>
+        </div>
     );
 }

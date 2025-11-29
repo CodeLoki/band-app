@@ -21,7 +21,7 @@ export default function Checklist<T extends string | number>({ label, name, opti
                             type="checkbox"
                             name={name}
                             value={value}
-                            className="checkbox checkbox-primary"
+                            className="checkbox checkbox-primary checkbox-sm"
                             defaultChecked={values.includes(value)}
                         />
                         <span className="label-text text-sm">{label}</span>

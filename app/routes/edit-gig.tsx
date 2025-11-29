@@ -12,16 +12,15 @@ import {
     updateDoc,
     where
 } from 'firebase/firestore';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { LuCircleX, LuSave, LuTrash2 } from 'react-icons/lu';
+import { useCallback, useRef, useState } from 'react';
+import { LuCircleX, LuTrash2 } from 'react-icons/lu';
 import { Form, useLoaderData } from 'react-router';
-import NavBarButton from '@/components/NavBarButton';
+import CommandPanel from '@/components/CommandPanel';
 import ShoppingCart from '@/components/ShoppingCart';
 import DateInput from '@/components/ui/DateInput';
 import TextInput from '@/components/ui/TextInput';
 import { db } from '@/config/firebase';
 import { useFirestore } from '@/contexts/Firestore';
-import { useNavbar } from '@/contexts/NavbarContext';
 import { type Gig, gigConverter } from '@/firestore/gigs';
 import type { Song } from '@/firestore/songs';
 import { calculateSetListLength, songConverter } from '@/firestore/songs';
@@ -122,7 +121,6 @@ export default function EditGigTest() {
     const { band, songs, gigId, gig, gigData, one, two, pocket } = useLoaderData<EditGigLoaderData>();
 
     const { canEdit, isMe } = useFirestore(),
-        { setNavbarContent } = useNavbar(),
         { showError, showSuccess } = useToastHelpers(),
         { navigate } = useNavigateWithParams(),
         [currentSetOne, setCurrentSetOne] = useState<DocumentSnapshot<Song>[]>(one ?? []),
@@ -214,29 +212,6 @@ export default function EditGigTest() {
         deleteModalRef.current?.showModal();
     }, []);
 
-    useEffect(() => {
-        setNavbarContent(
-            <div className="flex">
-                <NavBarButton fn={handleSave} className="text-primary">
-                    <LuSave />
-                    Save
-                </NavBarButton>
-                {gigId !== 'new' && (
-                    <NavBarButton fn={handleDelete} className="text-error">
-                        <LuTrash2 />
-                        Delete
-                    </NavBarButton>
-                )}
-                <NavBarButton fn={() => navigate('/')}>
-                    <LuCircleX />
-                    Cancel
-                </NavBarButton>
-            </div>
-        );
-
-        return () => setNavbarContent(null);
-    }, [setNavbarContent, gigId, handleSave, handleDelete, navigate]);
-
     // Create a single pool of available songs that excludes any song already assigned to any set
     const availableSongs = songs.filter(
         (song) =>
@@ -308,6 +283,8 @@ export default function EditGigTest() {
                         </div>
                     </div>
                 </dialog>
+
+                <CommandPanel handleSave={handleSave} handleDelete={gigId !== 'new' ? handleDelete : undefined} />
             </div>
         </>
     );

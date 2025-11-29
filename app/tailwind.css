@@ -28,8 +28,3 @@
     --color-info-content: oklch(100% 0 0);
     --depth: 1;
 }
-
-/* @plugin "daisyui" {
-    theme
-    s: dim, dark, forest, aqua, black, luxury, dracula --default, business, autumn, winter, pastel, garden, cupcake;
-} */

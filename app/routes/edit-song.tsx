@@ -1,15 +1,14 @@
 import { addDoc, collection, type DocumentSnapshot, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useCallback, useEffect, useRef } from 'react';
-import { LuCircleX, LuSave, LuTrash2 } from 'react-icons/lu';
+import { useCallback, useRef } from 'react';
+import { LuCircleX, LuTrash2 } from 'react-icons/lu';
 import { Form, useLoaderData } from 'react-router';
-import NavBarButton from '@/components/NavBarButton';
+import CommandPanel from '@/components/CommandPanel';
 import Checklist from '@/components/ui/Checklist';
 import SelectInput from '@/components/ui/SelectInput';
 import TextArea from '@/components/ui/TextArea';
 import TextInput from '@/components/ui/TextInput';
 import { db } from '@/config/firebase';
 import { useFirestore } from '@/contexts/Firestore';
-import { useNavbar } from '@/contexts/NavbarContext';
 import {
     DrumPad,
     drumPadMap,
@@ -74,7 +73,6 @@ function getOptionsFromMap(map: Map<number, string>, includeNone = false) {
 export default function EditSong() {
     const { canEdit, isMe } = useFirestore(),
         { songId, song, band, bands } = useLoaderData<EditSongLoaderData>(),
-        { setNavbarContent } = useNavbar(),
         { showError, showSuccess } = useToastHelpers();
 
     if (!canEdit || !isMe) {
@@ -165,29 +163,6 @@ export default function EditSong() {
             });
         }
     }, [song, showSuccess, showError, goBack]);
-
-    useEffect(() => {
-        setNavbarContent(
-            <div className="flex">
-                <NavBarButton fn={handleSave} className="text-primary">
-                    <LuSave />
-                    Save
-                </NavBarButton>
-                {songId !== 'new' && (
-                    <NavBarButton fn={handleDelete} className="text-errorAdd">
-                        <LuTrash2 />
-                        Delete
-                    </NavBarButton>
-                )}
-                <NavBarButton fn={goBack}>
-                    <LuCircleX />
-                    Cancel
-                </NavBarButton>
-            </div>
-        );
-
-        return () => setNavbarContent(null);
-    }, [setNavbarContent, songId, handleSave, handleDelete, goBack]);
 
     const pageTitle = getTitle(song ? `Edit "${song.get('title')}` : 'Create Song', band);
 
@@ -292,6 +267,8 @@ export default function EditSong() {
                         </div>
                     </div>
                 </dialog>
+
+                <CommandPanel handleSave={handleSave} handleDelete={songId !== 'new' ? handleDelete : undefined} />
             </div>
         </>
     );
