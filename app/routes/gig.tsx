@@ -1,5 +1,4 @@
 import { type DocumentSnapshot, doc, getDoc } from 'firebase/firestore';
-import { jsPDF } from 'jspdf';
 import { useCallback, useEffect } from 'react';
 import { LuFilePen, LuFileText } from 'react-icons/lu';
 import { redirect, useLoaderData } from 'react-router';
@@ -16,6 +15,7 @@ import { calculateSetListLength } from '@/firestore/songs';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
 import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
+import { generateSetListPdf } from '@/utils/generate-pdf';
 
 interface GigLoaderData extends Pick<AppData, 'band'> {
     gigId: string;
@@ -131,86 +131,20 @@ function getGigDate(gig: DocumentSnapshot<Gig>) {
 
 export default function GigRoute() {
     const { band, gigId, gig, songs } = useLoaderData<GigLoaderData>(),
-        { canEdit } = useFirestore(),
+        { canEdit, user } = useFirestore(),
         { showError, showSuccess } = useToastHelpers(),
         { setNavbarContent } = useNavbar();
 
     const generatePDF = useCallback(() => {
-        const venue = gig.get('venue');
-
         try {
-            const date = getGigDate(gig),
-                lineHeight = 10,
-                pdf = new jsPDF({
-                    format: 'letter'
-                });
-
-            const fnRenderHeader = (): number => {
-                pdf.setFont('Helvetica', 'bold');
-                pdf.text(venue, lineHeight, 10);
-                pdf.text(date, 200, 10, {
-                    align: 'right'
-                });
-                pdf.setFont('Helvetica', 'normal');
-
-                return 30;
-            };
-
-            let baseY = fnRenderHeader();
-
-            const fnAddSetList = (
-                setTitle: string,
-                setSongs: DocumentSnapshot<Song>[],
-                xOffset: number,
-                yOffset: number
-            ) => {
-                pdf.setFont('Helvetica', 'bold');
-                pdf.text(getSetListTitle(setTitle, setSongs), lineHeight + xOffset, yOffset);
-                pdf.setFont('Helvetica', 'normal');
-
-                setSongs.forEach((song, index) => {
-                    const data = song.data();
-                    if (data) {
-                        pdf.text(
-                            `${song.data()?.title}`,
-                            lineHeight + xOffset,
-                            yOffset + lineHeight + index * lineHeight
-                        );
-                    }
-                });
-            };
-
-            const { one, two, pocket } = songs;
-
-            if (one.length > 0) {
-                fnAddSetList('Set One', one, 0, baseY);
-            }
-
-            if (two.length > 0) {
-                fnAddSetList('Set Two', two, 100, baseY);
-            }
-
-            // Update baseY to account for the tallest set list.
-            baseY = baseY + 20 + Math.max(one.length, two.length) * lineHeight;
-
-            if (pocket.length > 0) {
-                // Will the pocket set NOT fit on the current page?
-                if (baseY + pocket.length * lineHeight > 290) {
-                    pdf.addPage();
-                    baseY = fnRenderHeader();
-                }
-
-                fnAddSetList('Pocket', pocket, 0, baseY);
-            }
-
-            pdf.save(`${venue}-${date}.pdf`);
+            generateSetListPdf(gig, songs, user);
             showSuccess('PDF generated successfully!');
         } catch (ex) {
             showError('Failed to generate PDF', {
                 details: ex instanceof Error ? ex.message : String(ex)
             });
         }
-    }, [gig, songs, showSuccess, showError]);
+    }, [gig, songs, user, showSuccess, showError]);
 
     useEffect(() => {
         if (canEdit) {

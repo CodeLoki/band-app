@@ -25,17 +25,21 @@ setupNavigationContextMock();
 const { mockPdfMethods, MockJsPDF } = vi.hoisted(() => {
     const mockPdfMethods = {
         setFont: vi.fn(),
+        setFontSize: vi.fn(),
         text: vi.fn(),
         save: vi.fn(),
-        addPage: vi.fn()
+        addPage: vi.fn(),
+        getTextWidth: vi.fn().mockReturnValue(10)
     };
 
     // Mock class constructor that returns the mock methods
     class MockJsPDF {
         setFont = mockPdfMethods.setFont;
+        setFontSize = mockPdfMethods.setFontSize;
         text = mockPdfMethods.text;
         save = mockPdfMethods.save;
         addPage = mockPdfMethods.addPage;
+        getTextWidth = mockPdfMethods.getTextWidth;
     }
 
     return { mockPdfMethods, MockJsPDF };
@@ -476,11 +480,11 @@ describe('Gig route', () => {
             const navbarContent = mockSetNavbarContent.mock.calls[0][0];
             navbarContent.props.fn();
 
-            // Check that text() was called with song titles
-            const textCalls = mockPdfMethods.text.mock.calls.map((call: unknown[]) => call[0]);
-            expect(textCalls).toContain('First Set Song');
-            expect(textCalls).toContain('Second Set Song');
-            expect(textCalls).toContain('Pocket Tune');
+            // Check that text() was called with song titles (titles now include notes like "Song (Drums count in)")
+            const textCalls = mockPdfMethods.text.mock.calls.map((call: unknown[]) => call[0] as string);
+            expect(textCalls.some((text) => text.includes('First Set Song'))).toBe(true);
+            expect(textCalls.some((text) => text.includes('Second Set Song'))).toBe(true);
+            expect(textCalls.some((text) => text.includes('Pocket Tune'))).toBe(true);
         });
 
         it('shows error toast when PDF generation fails', async () => {

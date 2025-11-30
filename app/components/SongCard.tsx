@@ -5,41 +5,40 @@ import { LuClock, LuFlag, LuGuitar, LuMusic4, LuNotepadText, LuStar } from 'reac
 import { ActionMode, useActionContext } from '@/contexts/ActionContext';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { DrumPad, drumPadMap, Instrument, instrumentMap, type Song, startsWithMap, User } from '@/firestore/songs';
+import { type Song, User } from '@/firestore/songs';
 import { CardStyle } from '@/utils/general';
+import { getSongNotes, type SongNote, SongNoteType } from '@/utils/song-notes';
 
 type BadgeColor = 'badge-info' | 'badge-success' | 'badge-warning' | 'badge-error';
 
-enum NoteType {
-    StartsWith,
-    Pad,
-    Notes,
-    Features,
-    Solos
-}
+const NoteTypeToBadgeColor: Record<SongNoteType, BadgeColor> = {
+    [SongNoteType.StartsWith]: 'badge-info',
+    [SongNoteType.Pad]: 'badge-warning',
+    [SongNoteType.Notes]: 'badge-success',
+    [SongNoteType.Features]: 'badge-success',
+    [SongNoteType.Solos]: 'badge-warning'
+};
 
-type Note = {
-    type: NoteType;
-    text: string;
+const NoteTypeToIcon: Record<SongNoteType, IconType> = {
+    [SongNoteType.StartsWith]: LuClock,
+    [SongNoteType.Pad]: LuStar,
+    [SongNoteType.Notes]: LuNotepadText,
+    [SongNoteType.Features]: LuMusic4,
+    [SongNoteType.Solos]: LuGuitar
+};
+
+interface DisplayNote extends SongNote {
     icon: IconType;
     color: BadgeColor;
-};
+}
 
-const NoteTypeToBadgeColor: Record<NoteType, BadgeColor> = {
-    [NoteType.StartsWith]: 'badge-info',
-    [NoteType.Pad]: 'badge-warning',
-    [NoteType.Notes]: 'badge-success',
-    [NoteType.Features]: 'badge-success',
-    [NoteType.Solos]: 'badge-warning'
-};
-
-const NoteTypeToIcon: Record<NoteType, IconType> = {
-    [NoteType.StartsWith]: LuClock,
-    [NoteType.Pad]: LuStar,
-    [NoteType.Notes]: LuNotepadText,
-    [NoteType.Features]: LuMusic4,
-    [NoteType.Solos]: LuGuitar
-};
+function toDisplayNote(note: SongNote): DisplayNote {
+    return {
+        ...note,
+        icon: NoteTypeToIcon[note.type],
+        color: NoteTypeToBadgeColor[note.type]
+    };
+}
 
 enum TabSource {
     Songsterr,
@@ -104,58 +103,6 @@ function getTabLink(song: Song, tabSource: TabSource): string | undefined {
     return undefined;
 }
 
-function getSongNotes(songData: Song, user: User): Note[] {
-    const notes: Note[] = [],
-        fnAddNote = (type: Note['type'], text: Note['text']): number =>
-            notes.push({
-                type,
-                text,
-                icon: NoteTypeToIcon[type],
-                color: NoteTypeToBadgeColor[type]
-            });
-
-    const startsWith = startsWithMap.get(songData.startsWith);
-    if (startsWith) {
-        fnAddNote(NoteType.StartsWith, startsWith);
-    }
-
-    if (user === User.Me) {
-        const { pad } = songData;
-        if (pad > DrumPad.None) {
-            const padText = drumPadMap.get(pad);
-            if (padText) {
-                fnAddNote(NoteType.Pad, padText);
-            }
-        }
-
-        const { notes } = songData;
-        if (notes) {
-            fnAddNote(NoteType.Notes, notes);
-        }
-    }
-
-    if (user === User.Mixer) {
-        const { features, solos } = songData;
-        if (features && features !== Instrument.None) {
-            const featureText = instrumentMap.get(features);
-            if (featureText) {
-                fnAddNote(NoteType.Features, featureText);
-            }
-        }
-
-        if (solos?.length > 0) {
-            solos.forEach((inst) => {
-                const soloText = instrumentMap.get(inst);
-                if (soloText) {
-                    fnAddNote(NoteType.Solos, soloText);
-                }
-            });
-        }
-    }
-
-    return notes;
-}
-
 interface SongCardProps {
     song: DocumentSnapshot<Song>;
 }
@@ -173,7 +120,7 @@ export default function SongCard({ song }: SongCardProps) {
         throw new Error(`Song data not found: "${song.id}"`);
     }
 
-    const notes = getSongNotes(songData, user);
+    const notes = getSongNotes(songData, user).map(toDisplayNote);
 
     const handleClick = async () => {
         if (canEdit && mode === ActionMode.Flag) {
