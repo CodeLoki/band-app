@@ -26,11 +26,15 @@ The app uses `clientLoader` functions with React Router, which is a valid patter
 **Current Implementation Example (home.tsx):**
 ```tsx
 export async function clientLoader({ request }: { request: Request }) {
-    const { band } = await loadAppData(request);
-    const gigsSnapshot = await getDocs(
-        query(collection(db, 'gigs'), where('band', '==', band.ref))
-    );
-    return { band, gigs: sortBy(gigsSnapshot.docs, 'date') };
+    const { band } = await loadAppData(request),
+        gigsSnapshot = await getDocs(
+            query(collection(db, 'gigs'), where('band', '==', band.ref)).withConverter(gigConverter)
+        );
+
+    return {
+        band,
+        gigs: sortBy(gigsSnapshot.docs, 'date')
+    };
 }
 ```
 
@@ -353,7 +357,7 @@ The package versions are generally very up-to-date. A few minor notes:
 
 1. **Large bundle size warning** - Consider code splitting with dynamic imports:
    ```tsx
-   const EditSong = lazy(() => import('./routes/edit-song'));
+   const EditSong = lazy(() => import('@/routes/edit-song'));
    ```
 
 2. **Error handling in loaders** - Could be more consistent across routes
