@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { IconType } from 'react-icons';
 import { LuArrowBigDown, LuArrowBigUp, LuTrash2, LuX } from 'react-icons/lu';
 
@@ -17,41 +17,10 @@ interface ShoppingCartProps<T> {
 }
 
 function Basket({ children }: React.PropsWithChildren) {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [showScrollIndicator, setShowScrollIndicator] = useState(false);
-
-    useEffect(() => {
-        const checkScrollable = () => {
-            if (scrollRef.current) {
-                const { scrollHeight, clientHeight } = scrollRef.current;
-                setShowScrollIndicator(scrollHeight > clientHeight);
-            }
-        };
-
-        checkScrollable();
-
-        // Check again when children change
-        const observer = new ResizeObserver(checkScrollable);
-        const scrollElement = scrollRef.current;
-
-        if (scrollElement) {
-            observer.observe(scrollElement);
-        }
-
-        return () => {
-            observer.disconnect();
-        };
-    }, []);
-
     return (
         <div className="card bg-base-100 relative">
             <div className="card-body p-3">
-                <div ref={scrollRef} className="flex flex-wrap gap-1 max-h-60 overflow-y-auto pb-4">
-                    {children}
-                </div>
-                {showScrollIndicator && (
-                    <div className="absolute bottom-3 left-3 right-3 h-4 bg-linear-to-t from-base-200 to-transparent pointer-events-none"></div>
-                )}
+                <div className="flex flex-wrap gap-1 max-h-60 overflow-y-auto pb-4 mask-b-from-90%">{children}</div>
             </div>
         </div>
     );
@@ -81,6 +50,9 @@ function ToolbarButton({
     );
 }
 
+/**
+ * A shopping cart component for selecting and managing items.
+ */
 export default function ShoppingCart<T extends { id: string }>({
     allItems,
     selectedItems: initialSelectedItems = [],

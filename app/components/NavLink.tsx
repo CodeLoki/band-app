@@ -17,9 +17,16 @@ export function addQueryParamsToUrl(url: string, searchParams: URLSearchParams):
  * Set preserveSearch={false} to navigate without preserving params.
  */
 export interface NavLinkProps extends LinkProps {
+    /**
+     * Whether to preserve current URL search parameters when navigating.
+     * @default true
+     */
     preserveSearch?: boolean;
 }
 
+/**
+ * A link designed to preserve current URL search parameters by default.
+ */
 export default function NavLink({ to, preserveSearch = true, ...props }: NavLinkProps) {
     const [searchParams] = useSearchParams();
 

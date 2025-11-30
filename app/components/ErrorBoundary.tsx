@@ -4,7 +4,6 @@ export default function ErrorBoundary() {
     const error = useRouteError();
     const navigate = useNavigate();
 
-    // Don't depend on contexts that might be failing
     // Instead, check environment or URL params directly
     const isMe = new URLSearchParams(window.location.search).get('u') === 'z';
 

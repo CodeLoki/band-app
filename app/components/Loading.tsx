@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useEffect, useState } from 'react';
 
 interface LoadingProps {
@@ -48,16 +49,10 @@ export default function Loading({ debounceMs = 250, fullScreen = false }: Loadin
         return null;
     }
 
-    if (fullScreen) {
-        return (
-            <div className="fixed inset-0 flex items-center justify-center bg-base-200 z-50">
-                <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary" />
-            </div>
-        );
-    }
+    const cssContainer = fullScreen ? 'fixed inset-0 bg-base-200 z-50' : 'min-h-[calc(100vh-8rem)]';
 
     return (
-        <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
+        <div className={clsx('flex items-center justify-center', cssContainer)}>
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary" />
         </div>
     );

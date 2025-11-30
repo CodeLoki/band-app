@@ -1,3 +1,4 @@
+import { LuX } from 'react-icons/lu';
 import { useToast } from '@/contexts/ToastContext';
 
 /**
@@ -123,7 +124,7 @@ export default function Toasts() {
                             onClick={() => removeToast(toast.id)}
                             aria-label="Close"
                         >
-                            ✕
+                            <LuX />
                         </button>
                     </div>
                 </div>

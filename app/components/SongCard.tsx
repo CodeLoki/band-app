@@ -156,7 +156,14 @@ function getSongNotes(songData: Song, user: User): Note[] {
     return notes;
 }
 
-export default function SongCard({ song }: { song: DocumentSnapshot<Song> }) {
+interface SongCardProps {
+    song: DocumentSnapshot<Song>;
+}
+
+/**
+ * A card for showing song details and allowing actions based on current user and action mode context.
+ */
+export default function SongCard({ song }: SongCardProps) {
     const { user, isMe, canEdit } = useFirestore(),
         { mode } = useActionContext(),
         { navigateWithParams } = useNavigation(),

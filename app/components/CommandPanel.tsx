@@ -2,13 +2,22 @@ import clsx from 'clsx';
 import { useCallback } from 'react';
 import { LuCog, LuSave, LuSquareX, LuTrash2, LuX } from 'react-icons/lu';
 
-export default function CommandPanel({
-    handleSave,
-    handleDelete
-}: {
+interface CommandPanelProps {
+    /**
+     * Called to save the item that is being edited.
+     */
     handleSave: () => void;
+
+    /**
+     * Called to delete the item that is being edited.  If this parameter is omitted the delete button will not be shown.
+     */
     handleDelete?: () => void;
-}) {
+}
+
+/**
+ * A component for showing a floating command button with Cancel, Save, and optionally Delete actions.
+ */
+export default function CommandPanel({ handleSave, handleDelete }: CommandPanelProps) {
     const goBack = useCallback(() => {
             window.history.back();
         }, []),
