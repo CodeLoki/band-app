@@ -13,7 +13,9 @@
         "format": "biome format --write .",
         "test": "vitest",
         "test:run": "vitest run",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui"
     },
     "dependencies": {
         "clsx": "^2.1.1",
@@ -27,6 +29,7 @@
     },
     "devDependencies": {
         "@biomejs/biome": "2.3.1",
+        "@playwright/test": "^1.57.0",
         "@tailwindcss/vite": "^4.1.13",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.0",

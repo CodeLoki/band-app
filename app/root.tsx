@@ -76,7 +76,7 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
 
     if (!isMe) {
         return (
-            <h1 className={clsx(cssBandName, 'pointer-events-none')}>
+            <h1 className={clsx(cssBandName, 'pointer-events-none')} data-testid="band-name">
                 {Icon}
                 {description}
             </h1>
@@ -86,7 +86,12 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
     if (canEdit) {
         return (
             <h1 className="dropdown dropdown-start">
-                <button className={clsx(cssBandName, 'flex items-center gap-2')} tabIndex={0} type="button">
+                <button
+                    className={clsx(cssBandName, 'flex items-center gap-2')}
+                    tabIndex={0}
+                    type="button"
+                    data-testid="band-name"
+                >
                     {Icon}
                     <span>{description}</span>
                     <LuChevronDown className="w-4 h-4 opacity-70" />
@@ -108,7 +113,7 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
     }
 
     return (
-        <button type="button" className={cssBandName} onClick={login}>
+        <button type="button" className={cssBandName} onClick={login} data-testid="band-name">
             {Icon}
             {description}
         </button>

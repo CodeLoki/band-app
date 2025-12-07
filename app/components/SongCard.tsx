@@ -167,7 +167,8 @@ export default function SongCard({ song }: SongCardProps) {
                 type="button"
                 className={CardStyle}
                 onClick={handleClick}
-                aria-label={`${songData.title} by $songData.artist`}
+                aria-label={`${songData.title} by ${songData.artist}`}
+                data-song-card-id={song.id}
             >
                 <div className="card-body p-6">
                     <div className="text-center text-base-content">
