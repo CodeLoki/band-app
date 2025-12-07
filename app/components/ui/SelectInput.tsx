@@ -14,7 +14,7 @@ export default function SelectInput<T extends string | number>({
 }: SelectInputProps<T>) {
     return (
         <label className="input w-full">
-            <span className="label w-50 text-primary font-bold">{label}</span>
+            <span className="label w-50 font-bold">{label}</span>
             <select
                 id={name}
                 name={name}

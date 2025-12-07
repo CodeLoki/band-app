@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useCallback } from 'react';
-import { LuCog, LuSave, LuSquareX, LuTrash2, LuX } from 'react-icons/lu';
+import { LuCog, LuLogOut, LuRotateCcw, LuSave, LuSquareX, LuTrash2 } from 'react-icons/lu';
 
 interface CommandPanelProps {
     /**
@@ -12,33 +12,47 @@ interface CommandPanelProps {
      * Called to delete the item that is being edited.  If this parameter is omitted the delete button will not be shown.
      */
     handleDelete?: () => void;
+
+    /**
+     * Called to reset the edit state to the original values.  If this parameter is omitted the reset button will not be shown.
+     */
+    handleReset?: () => void;
 }
 
 /**
- * A component for showing a floating command button with Cancel, Save, and optionally Delete actions.
+ * A component for showing a floating command button with Cancel, Save, and optionally Delete and Reset actions.
  */
-export default function CommandPanel({ handleSave, handleDelete }: CommandPanelProps) {
+export default function CommandPanel({ handleSave, handleDelete, handleReset }: CommandPanelProps) {
     const goBack = useCallback(() => {
             window.history.back();
         }, []),
-        buttons = [{ text: 'Save', icon: <LuSave />, color: 'btn-primary', onClick: handleSave }];
+        buttons = [],
+        cssCommon = 'btn btn-lg btn-circle btn-neutral';
+
+    if (handleReset) {
+        buttons.push({ text: 'Reset', icon: <LuRotateCcw />, color: 'btn-warning', onClick: handleReset });
+    }
+
+    // Add save button.
+    buttons.push({ text: 'Save', icon: <LuSave />, color: 'btn-primary', onClick: handleSave });
 
     if (handleDelete) {
         buttons.push({ text: 'Delete', icon: <LuTrash2 />, color: 'btn-error', onClick: handleDelete });
     }
 
-    buttons.push({ text: 'Cancel', icon: <LuX />, color: 'btn-neutral', onClick: goBack });
+    // Add cancel button.
+    buttons.push({ text: 'Cancel', icon: <LuLogOut />, color: '', onClick: goBack });
 
     return (
         <div className="fab">
             {/* biome-ignore lint/a11y/useSemanticElements: a focusable div with tabIndex is necessary to work on all browsers. role="button" is necessary for accessibility */}
-            <div tabIndex={0} role="button" className="btn btn-lg btn-soft btn-circle">
+            <div tabIndex={0} role="button" className="btn btn-lg btn-circle btn-soft">
                 <LuCog />
             </div>
             {/* Main Action button replaces the original button when FAB is open */}
             <button
                 type="button"
-                className="fab-main-action btn btn-circle btn-lg btn-neutral"
+                className={clsx('fab-main-action', cssCommon)}
                 onClick={(e) => e.currentTarget.blur()}
             >
                 <LuSquareX />
@@ -46,7 +60,7 @@ export default function CommandPanel({ handleSave, handleDelete }: CommandPanelP
             {buttons.map(({ text, icon, color, onClick }) => (
                 <div key={text}>
                     {text}
-                    <button type="button" className={clsx('btn btn-lg btn-circle btn-accent', color)} onClick={onClick}>
+                    <button type="button" className={clsx(cssCommon, color)} onClick={onClick}>
                         {icon}
                     </button>
                 </div>

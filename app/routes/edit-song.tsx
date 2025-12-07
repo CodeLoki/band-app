@@ -147,6 +147,10 @@ export default function EditSong() {
         deleteModalRef.current?.showModal();
     }, []);
 
+    const resetEditState = useCallback(() => {
+        formRef.current?.reset();
+    }, []);
+
     const performDelete = useCallback(async () => {
         if (!song) return;
 
@@ -236,7 +240,7 @@ export default function EditSong() {
                                     type="checkbox"
                                     name="practice"
                                     value="practice"
-                                    className="checkbox checkbox-primary"
+                                    className="checkbox checkbox-accent"
                                     defaultChecked={initialData.practice}
                                 />
                                 <span className="label-text text-sm">Flag for practice</span>
@@ -268,7 +272,11 @@ export default function EditSong() {
                     </div>
                 </dialog>
 
-                <CommandPanel handleSave={handleSave} handleDelete={songId !== 'new' ? handleDelete : undefined} />
+                <CommandPanel
+                    handleSave={handleSave}
+                    handleDelete={songId !== 'new' ? handleDelete : undefined}
+                    handleReset={resetEditState}
+                />
             </div>
         </>
     );

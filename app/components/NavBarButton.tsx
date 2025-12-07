@@ -12,7 +12,12 @@ interface NavBarButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement
  */
 export default function NavBarButton({ fn, className, children, ...props }: NavBarButtonProps) {
     return (
-        <button type="button" onClick={fn} className={clsx('btn btn-neutral btn-sm', className)} {...props}>
+        <button
+            type="button"
+            onClick={fn}
+            className={clsx('btn btn-sm btn-neutral border border-neutral-content/30', className)}
+            {...props}
+        >
             {children}
         </button>
     );

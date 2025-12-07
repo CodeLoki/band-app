@@ -7,7 +7,7 @@ interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 export default function TextArea({ label, name, defaultValue = '', ...props }: TextAreaProps) {
     return (
         <label className="input w-full h-32">
-            <span className="label w-50 h-32 text-primary font-bold">{label}</span>
+            <span className="label w-50 h-32 font-bold">{label}</span>
             <textarea
                 id={name}
                 name={name}
