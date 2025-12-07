@@ -51,6 +51,7 @@ export default function RehearseSong() {
                     type="button"
                     className="absolute bottom-8 right-8 z-10 btn btn-circle btn-primary btn-lg"
                     onClick={() => window.history.back()}
+                    data-testid="rehearse-back-button"
                 >
                     <LuLogOut />
                 </button>

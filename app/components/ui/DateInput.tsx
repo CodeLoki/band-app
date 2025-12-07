@@ -12,7 +12,7 @@ export default function DateInput({ label, name, currentValue, ...props }: DateI
 
     return (
         <label className="input w-full">
-            <span className="label w-50 text-primary font-bold">{label}</span>
+            <span className="label w-50 font-bold">{label}</span>
             <input
                 type="date"
                 className="input input-ghost focus:outline-none focus:ring-0 focus:border-transparent outline-none"

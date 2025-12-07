@@ -26,7 +26,7 @@ describe('NavBarLink', () => {
         );
 
         const link = screen.getByText('Link');
-        expect(link).toHaveClass('btn', 'btn-ghost', 'btn-sm');
+        expect(link).toHaveClass('btn', 'btn-neutral', 'btn-sm', 'border', 'border-neutral-content/30');
     });
 
     it('merges custom className with default classes', () => {
@@ -39,7 +39,7 @@ describe('NavBarLink', () => {
         );
 
         const link = screen.getByText('Link');
-        expect(link).toHaveClass('btn', 'btn-ghost', 'btn-sm', 'custom-class');
+        expect(link).toHaveClass('btn', 'btn-neutral', 'btn-sm', 'border', 'border-neutral-content/30', 'custom-class');
     });
 
     it('passes through other props to NavLink', () => {

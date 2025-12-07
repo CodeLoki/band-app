@@ -9,7 +9,7 @@ export default function Checklist<T extends string | number>({ label, name, opti
     return (
         <fieldset className="form-control">
             <legend className="label">
-                <span className="label-text text-primary font-bold">{label}</span>
+                <span className="label-text font-bold">{label}</span>
             </legend>
             <div className="flex flex-wrap gap-2 items-center m-0">
                 {options.map(({ value, label }) => (
@@ -21,7 +21,7 @@ export default function Checklist<T extends string | number>({ label, name, opti
                             type="checkbox"
                             name={name}
                             value={value}
-                            className="checkbox checkbox-primary checkbox-sm"
+                            className="checkbox checkbox-accent checkbox-sm"
                             defaultChecked={values.includes(value)}
                         />
                         <span className="label-text text-sm">{label}</span>

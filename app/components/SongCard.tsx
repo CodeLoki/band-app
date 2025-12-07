@@ -9,10 +9,10 @@ import { type Song, User } from '@/firestore/songs';
 import { CardStyle } from '@/utils/general';
 import { getSongNotes, type SongNote, SongNoteType } from '@/utils/song-notes';
 
-type BadgeColor = 'badge-info' | 'badge-success' | 'badge-warning' | 'badge-error';
+type BadgeColor = 'badge-accent' | 'badge-success' | 'badge-warning' | 'badge-error';
 
 const NoteTypeToBadgeColor: Record<SongNoteType, BadgeColor> = {
-    [SongNoteType.StartsWith]: 'badge-info',
+    [SongNoteType.StartsWith]: 'badge-accent',
     [SongNoteType.Pad]: 'badge-warning',
     [SongNoteType.Notes]: 'badge-success',
     [SongNoteType.Features]: 'badge-success',
@@ -156,7 +156,7 @@ export default function SongCard({ song }: SongCardProps) {
         <div className="indicator w-full">
             {isMe && songData.practice ? (
                 <div
-                    className="indicator-item bg-accent text-accent-foreground rounded-full p-2 right-6 top-6"
+                    className="indicator-item bg-accent text-accent-content rounded-full p-2 right-6 top-6"
                     title="Flagged for Practice"
                 >
                     <LuFlag />
@@ -167,14 +167,15 @@ export default function SongCard({ song }: SongCardProps) {
                 type="button"
                 className={CardStyle}
                 onClick={handleClick}
-                aria-label={`${songData.title} by $songData.artist`}
+                aria-label={`${songData.title} by ${songData.artist}`}
+                data-song-card-id={song.id}
             >
                 <div className="card-body p-6">
                     <div className="text-center text-base-content">
                         <div className="relative">
                             <h3 className="flex-1 card-title justify-center">{songData.title}</h3>
                         </div>
-                        <p className="text-sm opacity-70">{songData.artist}</p>
+                        <p className="text-sm opacity-80">{songData.artist}</p>
                     </div>
 
                     <div className="flex flex-wrap gap-2 justify-center mt-1">

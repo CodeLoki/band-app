@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { useEffect } from 'react';
 import { LuCirclePlus } from 'react-icons/lu';
@@ -46,7 +47,7 @@ export default function SongsIndex() {
     useEffect(() => {
         if (canEdit) {
             setNavbarContent(
-                <NavBarLink to="/edit-song/new" className="text-primary">
+                <NavBarLink to="/edit-song/new">
                     <LuCirclePlus />
                     Add
                 </NavBarLink>
@@ -80,7 +81,7 @@ export default function SongsIndex() {
         [FilterOption.Orphans, 'Orphans'],
         [FilterOption.Others, 'Others'],
         [FilterOption.Practice, 'Practice'],
-        [FilterOption.All, 'All', 'btn-sm filter-reset']
+        [FilterOption.All, 'All', 'filter-reset']
     ] as const;
 
     return (
@@ -95,7 +96,7 @@ export default function SongsIndex() {
                             <div className="filter flex-none ms-auto">
                                 {buttons.map(([v, t, c = '']) => (
                                     <input
-                                        className={`btn btn-sm ${c}`}
+                                        className={clsx('btn btn-sm btn-neutral', c)}
                                         type="radio"
                                         name="song-type"
                                         aria-label={t}

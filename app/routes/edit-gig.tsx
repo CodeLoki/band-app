@@ -138,6 +138,13 @@ export default function EditGigTest() {
         [songs]
     );
 
+    const resetEditState = useCallback(() => {
+        setCurrentSetOne(one ?? []);
+        setCurrentSetTwo(two ?? []);
+        setCurrentPocket(pocket ?? []);
+        formRef.current?.reset();
+    }, [one, two, pocket]);
+
     if (!canEdit || !isMe) {
         throw new Error('You do not have permission to edit gigs.');
     }
@@ -226,7 +233,7 @@ export default function EditGigTest() {
         <>
             <title>{pageTitle}</title>
             <div className="m-8">
-                <div className="card card-border bg-neutral shadow-xl">
+                <div className="card bg-base-100 text-base-100-content card-border border-base-300 shadow-xl">
                     <Form ref={formRef} className="card-body space-y-4">
                         <DateInput label="Date" name="date" currentValue={gigData?.date} />
                         <TextInput label="Venue" name="venue" defaultValue={gigData?.venue ?? ''} />
@@ -284,7 +291,11 @@ export default function EditGigTest() {
                     </div>
                 </dialog>
 
-                <CommandPanel handleSave={handleSave} handleDelete={gigId !== 'new' ? handleDelete : undefined} />
+                <CommandPanel
+                    handleSave={handleSave}
+                    handleDelete={gigId !== 'new' ? handleDelete : undefined}
+                    handleReset={resetEditState}
+                />
             </div>
         </>
     );
