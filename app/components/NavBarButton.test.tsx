@@ -27,7 +27,7 @@ describe('NavBarButton', () => {
         render(<NavBarButton fn={() => {}}>Button</NavBarButton>);
         const button = screen.getByRole('button');
 
-        expect(button).toHaveClass('btn', 'btn-ghost', 'btn-sm');
+        expect(button).toHaveClass('btn', 'btn-neutral', 'btn-sm', 'border', 'border-neutral-content/30');
     });
 
     it('merges custom className with defaults', () => {
@@ -38,7 +38,14 @@ describe('NavBarButton', () => {
         );
         const button = screen.getByRole('button');
 
-        expect(button).toHaveClass('btn', 'btn-ghost', 'btn-sm', 'custom-class');
+        expect(button).toHaveClass(
+            'btn',
+            'btn-neutral',
+            'btn-sm',
+            'border',
+            'border-neutral-content/30',
+            'custom-class'
+        );
     });
 
     it('passes additional props to button element', () => {

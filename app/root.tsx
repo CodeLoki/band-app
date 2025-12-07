@@ -4,7 +4,6 @@ import { useCallback } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
 import { Outlet, ScrollRestoration, useLoaderData, useNavigate, useNavigation } from 'react-router';
 import Loading from '@/components/Loading';
-import NavLink from '@/components/NavLink';
 import Toasts from '@/components/Toasts';
 import { ActionModeProvider } from '@/contexts/ActionContext';
 import { ErrorProvider } from '@/contexts/ErrorContext';

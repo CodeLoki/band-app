@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useCallback } from 'react';
+import { type MouseEvent, useCallback } from 'react';
 import { LuCog, LuLogOut, LuRotateCcw, LuSave, LuSquareX, LuTrash2 } from 'react-icons/lu';
 
 interface CommandPanelProps {
@@ -26,8 +26,12 @@ export default function CommandPanel({ handleSave, handleDelete, handleReset }: 
     const goBack = useCallback(() => {
             window.history.back();
         }, []),
-        buttons = [],
-        cssCommon = 'btn btn-lg btn-circle btn-neutral';
+        handleClick = useCallback((e: MouseEvent<HTMLButtonElement>, onClick: () => void) => {
+            e.currentTarget.blur();
+            onClick();
+        }, []),
+        buttons = [{ text: 'Cancel', icon: <LuLogOut />, color: 'btn-neutral', onClick: goBack }],
+        cssCommon = 'btn btn-lg btn-circle';
 
     if (handleReset) {
         buttons.push({ text: 'Reset', icon: <LuRotateCcw />, color: 'btn-warning', onClick: handleReset });
@@ -40,13 +44,10 @@ export default function CommandPanel({ handleSave, handleDelete, handleReset }: 
         buttons.push({ text: 'Delete', icon: <LuTrash2 />, color: 'btn-error', onClick: handleDelete });
     }
 
-    // Add cancel button.
-    buttons.push({ text: 'Cancel', icon: <LuLogOut />, color: '', onClick: goBack });
-
     return (
         <div className="fab">
             {/* biome-ignore lint/a11y/useSemanticElements: a focusable div with tabIndex is necessary to work on all browsers. role="button" is necessary for accessibility */}
-            <div tabIndex={0} role="button" className="btn btn-lg btn-circle btn-soft">
+            <div tabIndex={0} role="button" className="btn btn-lg btn-circle btn-soft" aria-label="Open Command Menu">
                 <LuCog />
             </div>
             {/* Main Action button replaces the original button when FAB is open */}
@@ -54,13 +55,19 @@ export default function CommandPanel({ handleSave, handleDelete, handleReset }: 
                 type="button"
                 className={clsx('fab-main-action', cssCommon)}
                 onClick={(e) => e.currentTarget.blur()}
+                aria-label="Close Command Menu"
             >
                 <LuSquareX />
             </button>
             {buttons.map(({ text, icon, color, onClick }) => (
                 <div key={text}>
                     {text}
-                    <button type="button" className={clsx(cssCommon, color)} onClick={onClick}>
+                    <button
+                        type="button"
+                        className={clsx(cssCommon, color)}
+                        onClick={(e) => handleClick(e, onClick)}
+                        aria-label={text}
+                    >
                         {icon}
                     </button>
                 </div>
