@@ -11,7 +11,7 @@ export default function TextArea({ label, name, defaultValue = '', ...props }: T
             <textarea
                 id={name}
                 name={name}
-                className="textarea textarea-ghost h-32 w-full focus:outline-none focus:ring-0 focus:border-transparent outline-none"
+                className="textarea textarea-ghost h-30 w-full focus:outline-none focus:ring-0 focus:border-transparent outline-none"
                 defaultValue={defaultValue}
                 {...props}
             />

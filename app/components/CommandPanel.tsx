@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { type MouseEvent, useCallback } from 'react';
-import { LuCog, LuLogOut, LuRotateCcw, LuSave, LuSquareX, LuTrash2 } from 'react-icons/lu';
+import { LuCommand, LuLogOut, LuRotateCcw, LuSave, LuSquareX, LuTrash2 } from 'react-icons/lu';
 
 interface CommandPanelProps {
     /**
@@ -48,7 +48,7 @@ export default function CommandPanel({ handleSave, handleDelete, handleReset }: 
         <div className="fab">
             {/* biome-ignore lint/a11y/useSemanticElements: a focusable div with tabIndex is necessary to work on all browsers. role="button" is necessary for accessibility */}
             <div tabIndex={0} role="button" className="btn btn-lg btn-circle btn-soft" aria-label="Open Command Menu">
-                <LuCog />
+                <LuCommand />
             </div>
             {/* Main Action button replaces the original button when FAB is open */}
             <button

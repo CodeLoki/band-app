@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
 import { Outlet, ScrollRestoration, useLoaderData, useNavigate, useNavigation } from 'react-router';
 import Loading from '@/components/Loading';
+import NavBarLink from '@/components/NavBarLink';
 import Toasts from '@/components/Toasts';
 import { ActionModeProvider } from '@/contexts/ActionContext';
 import { ErrorProvider } from '@/contexts/ErrorContext';
@@ -15,7 +16,6 @@ import type { Band } from '@/firestore/bands';
 import type { User } from '@/firestore/songs';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { type AppData, loadAppData } from '@/loaders/appData';
-import NavBarLink from './components/NavBarLink';
 import './tailwind.css';
 
 export { default as ErrorBoundary } from '@/components/ErrorBoundary';
