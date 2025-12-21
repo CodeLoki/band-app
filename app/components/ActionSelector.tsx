@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { type MouseEvent, useEffect, useState } from 'react';
 import { LuDrum, LuFilePen, LuFlag, LuMonitorPlay, LuMusic, LuSquareX } from 'react-icons/lu';
 import { ActionMode, useActionContext } from '@/contexts/ActionContext';
@@ -27,7 +28,8 @@ export default function Loading() {
     const { isMe, canEdit } = useFirestore(),
         { mode, setActionMode } = useActionContext(),
         [icon, setIcon] = useState(getIcon(mode)),
-        [buttons, setButtons] = useState<[string, ActionMode][]>([]);
+        [buttons, setButtons] = useState<[string, ActionMode][]>([]),
+        cssCommon = 'btn btn-lg btn-circle';
 
     useEffect(() => {
         const btns = [...commonButtons];
@@ -55,14 +57,15 @@ export default function Loading() {
     return (
         <div className="fab fab-flower">
             {/* biome-ignore lint/a11y/useSemanticElements: a focusable div with tabIndex is necessary to work on all browsers. role="button" is necessary for accessibility */}
-            <div tabIndex={0} role="button" className="btn btn-lg btn-soft btn-circle">
+            <div tabIndex={0} role="button" className={clsx(cssCommon, 'btn-soft')} title="Open Action Menu">
                 {icon}
             </div>
             {/* Main Action button replaces the original button when FAB is open */}
             <button
                 type="button"
-                className="fab-main-action btn btn-circle btn-lg btn-neutral"
+                className={clsx(cssCommon, 'fab-main-action btn-neutral')}
                 onClick={(e) => e.currentTarget.blur()}
+                title="Close Action Menu"
             >
                 <LuSquareX />
             </button>
@@ -70,8 +73,9 @@ export default function Loading() {
                 <div key={mode} className="tooltip tooltip-left" data-tip={tip}>
                     <button
                         type="button"
-                        className="btn btn-lg btn-circle btn-soft"
+                        className={clsx(cssCommon, 'btn-soft')}
                         onClick={(e) => handleClick(mode, e)}
+                        aria-label={tip}
                     >
                         {getIcon(mode)}
                     </button>

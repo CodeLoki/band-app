@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
 import { Outlet, ScrollRestoration, useLoaderData, useNavigate, useNavigation } from 'react-router';
 import Loading from '@/components/Loading';
-import NavLink from '@/components/NavLink';
+import NavBarLink from '@/components/NavBarLink';
 import Toasts from '@/components/Toasts';
 import { ActionModeProvider } from '@/contexts/ActionContext';
 import { ErrorProvider } from '@/contexts/ErrorContext';
@@ -60,7 +60,8 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
     const { isMe, canEdit, login, user } = useFirestore(),
         navigate = useNavigate(),
         isMobile = useIsMobile(),
-        cssBandName = 'btn btn-neutral text-lg',
+        cssBandName = 'text-lg flex items-center gap-2',
+        cssBandButton = `btn btn-neutral`,
         { description } = band.data(),
         Icon = !isMobile ? <LuFileMusic className="h-6 w-6 flex-none" /> : null;
 
@@ -76,7 +77,7 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
 
     if (!isMe) {
         return (
-            <h1 className={clsx(cssBandName, 'pointer-events-none')}>
+            <h1 className={clsx(cssBandName, 'pointer-events-none')} data-testid="band-name">
                 {Icon}
                 {description}
             </h1>
@@ -86,7 +87,12 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
     if (canEdit) {
         return (
             <h1 className="dropdown dropdown-start">
-                <button className={clsx(cssBandName, 'flex items-center gap-2')} tabIndex={0} type="button">
+                <button
+                    className={clsx(cssBandName, cssBandButton, 'flex items-center gap-2')}
+                    tabIndex={0}
+                    type="button"
+                    data-testid="band-name"
+                >
                     {Icon}
                     <span>{description}</span>
                     <LuChevronDown className="w-4 h-4 opacity-70" />
@@ -108,7 +114,7 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
     }
 
     return (
-        <button type="button" className={cssBandName} onClick={login}>
+        <button type="button" className={clsx(cssBandName, cssBandButton)} onClick={login} data-testid="band-name">
             {Icon}
             {description}
         </button>
@@ -117,10 +123,14 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
 
 function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
     const { navbarContent } = useNavbar(),
-        isMobile = useIsMobile();
+        isMobile = useIsMobile(),
+        buttons = [
+            [LuHouse, '/', 'Home'],
+            [LuAudioLines, '/songs', 'Songs']
+        ] as const;
 
     return (
-        <div className="navbar sticky top-0 z-50 bg-neutral shadow-md items-center gap-1 py-0 min-h-auto">
+        <div className="navbar sticky top-0 z-50 bg-neutral text-neutral-content shadow-md items-center gap-1 px-3 py-1 min-h-auto">
             <div className="flex-1">
                 <BandName band={band} bands={bands} />
             </div>
@@ -129,19 +139,17 @@ function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; ban
             {navbarContent && !isMobile && (
                 <>
                     <div className="flex flex-none">{navbarContent}</div>
-                    <div className="divider divider-horizontal m-1 h-8 self-center"></div>
+                    <div className="divider divider-horizontal divider-accent/80 m-1 h-8 self-center"></div>
                 </>
             )}
 
-            <div className="flex-none flex gap-1">
-                <NavLink to="/" className="btn btn-neutral btn-sm">
-                    <LuHouse />
-                    Home
-                </NavLink>
-                <NavLink to="/songs" className="btn btn-neutral btn-sm">
-                    <LuAudioLines />
-                    Songs
-                </NavLink>
+            <div className="flex-none flex gap-2">
+                {buttons.map(([Icon, to, label]) => (
+                    <NavBarLink to={to} key={to}>
+                        <Icon />
+                        {label}
+                    </NavBarLink>
+                ))}
             </div>
         </div>
     );

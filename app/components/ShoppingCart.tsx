@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import type React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import type { IconType } from 'react-icons';
@@ -18,7 +19,7 @@ interface ShoppingCartProps<T> {
 
 function Basket({ children }: React.PropsWithChildren) {
     return (
-        <div className="card bg-base-100 relative">
+        <div className="card bg-base-300 text-base-300-content relative">
             <div className="card-body p-3">
                 <div className="flex flex-wrap gap-1 max-h-60 overflow-y-auto pb-4 mask-b-from-90%">{children}</div>
             </div>
@@ -42,7 +43,7 @@ function ToolbarButton({
             type="button"
             onClick={fn}
             disabled={disabled}
-            className={`tooltip tooltip-left ${disabled ? 'text-base-content/30' : 'text-primary'}`}
+            className={`tooltip tooltip-left ${disabled ? 'text-neutral-content/30' : 'text-neutral-content'}`}
             data-tip={text}
         >
             <Icon className="h-5 w-5" />
@@ -134,7 +135,7 @@ export default function ShoppingCart<T extends { id: string }>({
                         key={item.id}
                         type="button"
                         onClick={() => handleAddItem(item)}
-                        className="badge badge-sm rounded-md cursor-pointer badge-soft bg-neutral hover:badge-primary transition-colors"
+                        className="badge badge-sm rounded-md cursor-pointer badge-soft hover:badge-accent transition-colors"
                     >
                         {item[labelField] as string}
                     </button>
@@ -148,11 +149,10 @@ export default function ShoppingCart<T extends { id: string }>({
                         key={item.id}
                         type="button"
                         onClick={() => handleSelectItem(item.id)}
-                        className={`badge badge-sm rounded-md cursor-pointer transition-colors ${
-                            activeItemId === item.id
-                                ? 'badge-primary bg-primary/10 border-primary text-primary'
-                                : 'badge-outline hover:badge-primary'
-                        }`}
+                        className={clsx(
+                            'badge badge-sm rounded-md cursor-pointer transition-colors',
+                            activeItemId === item.id ? 'badge-accent' : 'badge-soft'
+                        )}
                     >
                         {item[labelField] as string}
                     </button>
@@ -160,7 +160,7 @@ export default function ShoppingCart<T extends { id: string }>({
             </Basket>
 
             {/* Toolbar */}
-            <ul className="menu bg-base-200 rounded-box h-full flex flex-col">
+            <ul className="menu bg-base-300 rounded-box h-full flex flex-col">
                 <li>
                     <ToolbarButton
                         fn={() => {
@@ -192,7 +192,7 @@ export default function ShoppingCart<T extends { id: string }>({
                     />
                 </li>
                 <li className="flex-1 bg-transparent"></li>
-                <li className="mt-auto">
+                <li>
                     <ToolbarButton
                         fn={() => {
                             handleClearAll();

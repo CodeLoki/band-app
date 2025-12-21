@@ -14,12 +14,12 @@ export default function SelectInput<T extends string | number>({
 }: SelectInputProps<T>) {
     return (
         <label className="input w-full">
-            <span className="label w-50 text-primary font-bold">{label}</span>
+            <span className="label w-50 font-bold">{label}</span>
             <select
                 id={name}
                 name={name}
                 defaultValue={defaultValue ?? ''}
-                className="select select-ghost w-full focus:outline-none focus:ring-0 focus:border-transparent outline-none"
+                className="select select-ghost w-full h-9 focus:outline-none focus:ring-0 focus:border-transparent outline-none"
                 style={{ outline: 'none', boxShadow: 'none' }}
                 {...props}
             >

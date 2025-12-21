@@ -30,7 +30,13 @@ const renderGig = (gig: QueryDocumentSnapshot<Gig>) => {
         date = data.date.toDate().toLocaleDateString();
 
     return (
-        <NavLink key={gig.id} to={`gig/${gig.id}`} className={CardStyle} aria-label={`${data.venue} on ${date}`}>
+        <NavLink
+            key={gig.id}
+            to={`gig/${gig.id}`}
+            className={CardStyle}
+            aria-label={`${data.venue} on ${date}`}
+            data-gig-id={gig.id}
+        >
             <div className="card-body text-center p-6">
                 <h2 className="card-title justify-center">{data.venue}</h2>
                 <p>Date: {date}</p>
