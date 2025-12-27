@@ -21,6 +21,10 @@
         "enabled": true,
         "rules": {
             "recommended": true,
+            "style": {
+                "recommended": true,
+                "noNonNullAssertion": "off"
+            },
             "nursery": {
                 "recommended": true,
                 "noFloatingPromises": "error",

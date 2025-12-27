@@ -46,12 +46,7 @@ export default function SongsIndex() {
 
     useEffect(() => {
         if (canEdit) {
-            setNavbarContent(
-                <NavBarLink to="/edit-song/new">
-                    <LuCirclePlus />
-                    Add
-                </NavBarLink>
-            );
+            setNavbarContent(<NavBarLink icon={<LuCirclePlus />} text="Add" to="/edit-song/new" />);
         }
 
         return () => setNavbarContent(null);
@@ -93,10 +88,10 @@ export default function SongsIndex() {
                         <h2 className="hidden md:block flex-1 text-2xl font-bold mb-2">Songs ({songs.length})</h2>
 
                         {isMe ? (
-                            <div className="filter flex-none ms-auto">
+                            <div className="filter flex-none mx-auto md:ms-auto">
                                 {buttons.map(([v, t, c = '']) => (
                                     <input
-                                        className={clsx('btn btn-sm btn-neutral', c)}
+                                        className={clsx('btn btn-sm btn-accent btn-soft', c)}
                                         type="radio"
                                         name="song-type"
                                         aria-label={t}

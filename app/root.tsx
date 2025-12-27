@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
 import { useCallback } from 'react';
-import { LuAudioLines, LuChevronDown, LuFileMusic, LuHouse } from 'react-icons/lu';
-import { Outlet, ScrollRestoration, useLoaderData, useNavigate, useNavigation } from 'react-router';
+import { LuAudioLines, LuChevronDown, LuHouse, LuListMusic } from 'react-icons/lu';
+import { Outlet, ScrollRestoration, useLoaderData, useLocation, useNavigate, useNavigation } from 'react-router';
 import Loading from '@/components/Loading';
 import NavBarLink from '@/components/NavBarLink';
+import NavLink from '@/components/NavLink';
 import Toasts from '@/components/Toasts';
 import { ActionModeProvider } from '@/contexts/ActionContext';
 import { ErrorProvider } from '@/contexts/ErrorContext';
@@ -14,7 +15,6 @@ import { NavigationProvider } from '@/contexts/NavigationContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import type { Band } from '@/firestore/bands';
 import type { User } from '@/firestore/songs';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import { type AppData, loadAppData } from '@/loaders/appData';
 import './tailwind.css';
 
@@ -59,11 +59,10 @@ export default function Root() {
 function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
     const { isMe, canEdit, login, user } = useFirestore(),
         navigate = useNavigate(),
-        isMobile = useIsMobile(),
-        cssBandName = 'text-lg flex items-center gap-2',
+        cssBandName = 'text-md flex items-center gap-2',
         cssBandButton = `btn btn-neutral`,
         { description } = band.data(),
-        Icon = !isMobile ? <LuFileMusic className="h-6 w-6 flex-none" /> : null;
+        Icon = <LuListMusic className="h-5 w-5 flex-none hidden md:block" />;
 
     const updateBand = useCallback(
         (b: QueryDocumentSnapshot<Band>, u: User, event: React.MouseEvent) => {
@@ -123,11 +122,13 @@ function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Q
 
 function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
     const { navbarContent } = useNavbar(),
-        isMobile = useIsMobile(),
-        buttons = [
-            [LuHouse, '/', 'Home'],
-            [LuAudioLines, '/songs', 'Songs']
-        ] as const;
+        location = useLocation(),
+        buttons = new Map([
+            ['/', { Icon: LuHouse, label: 'Home' }],
+            ['/songs', { Icon: LuAudioLines, label: 'Songs' }]
+        ]),
+        currentPath = location.pathname.startsWith('/songs') ? '/songs' : '/',
+        { Icon: CurrentIcon, label: currentLabel } = buttons.get(currentPath)!;
 
     return (
         <div className="navbar sticky top-0 z-50 bg-neutral text-neutral-content shadow-md items-center gap-1 px-3 py-1 min-h-auto">
@@ -136,20 +137,41 @@ function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; ban
             </div>
 
             {/* Dynamic content from routes */}
-            {navbarContent && !isMobile && (
+            {navbarContent && (
                 <>
                     <div className="flex flex-none">{navbarContent}</div>
                     <div className="divider divider-horizontal divider-accent/80 m-1 h-8 self-center"></div>
                 </>
             )}
 
-            <div className="flex-none flex gap-2">
-                {buttons.map(([Icon, to, label]) => (
-                    <NavBarLink to={to} key={to}>
-                        <Icon />
-                        {label}
-                    </NavBarLink>
+            {/* Buttons show up on medium and larger screens  */}
+            <div className="hidden md:flex gap-2 flex-none" data-testid="desktop-nav">
+                {[...buttons.entries()].map(([to, { Icon, label }]) => (
+                    <NavBarLink icon={<Icon />} text={label} to={to} key={to} />
                 ))}
+            </div>
+
+            {/* Dropdown for small screens */}
+            <div className="md:hidden dropdown dropdown-end">
+                <button
+                    type="button"
+                    tabIndex={0}
+                    className="btn btn-sm btn-soft btn-accent border border-neutral-content/30"
+                >
+                    <CurrentIcon />
+                    {currentLabel}
+                    <LuChevronDown />
+                </button>
+                <ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-1 w-30 p-2 shadow-sm">
+                    {[...buttons.entries()].map(([to, { Icon, label }]) => (
+                        <li key={to}>
+                            <NavLink to={to} onClick={(e) => e.currentTarget.blur()}>
+                                <Icon />
+                                {label}
+                            </NavLink>
+                        </li>
+                    ))}
+                </ul>
             </div>
         </div>
     );

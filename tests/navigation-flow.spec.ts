@@ -74,7 +74,9 @@ test.describe('Navigation Flow', () => {
         await exitButton.click();
         await expect(page).toHaveURL(new RegExp(`/gig/${gigId}`));
 
-        const songsButton = page.locator('a[href^="/songs"]');
+        // Navigate to songs page via navbar link
+        const songsButton = page.getByRole('link', { name: 'Songs' }).first();
+        await expect(songsButton).toBeVisible({ timeout: 10000 });
         await songsButton.click();
 
         // Verify we're on the songs page without filter param
@@ -162,8 +164,9 @@ test.describe('Navigation Flow', () => {
         const fab = page.locator('.fab');
         await expect(fab).not.toBeVisible();
 
-        // Navigate to songs page
-        const songsButton = page.locator('a[href^="/songs"]');
+        // Navigate to songs page via navbar link
+        const songsButton = page.getByRole('link', { name: 'Songs' }).first();
+        await expect(songsButton).toBeVisible({ timeout: 10000 });
         await songsButton.click();
 
         // Verify we're on the songs page
