@@ -148,19 +148,9 @@ export default function GigRoute() {
 
     useEffect(() => {
         if (canEdit) {
-            setNavbarContent(
-                <NavBarLink to={`/edit-gig/${gigId}`}>
-                    <LuFilePen />
-                    Edit
-                </NavBarLink>
-            );
+            setNavbarContent(<NavBarLink icon={<LuFilePen />} text="Edit" to={`/edit-gig/${gigId}`} />);
         } else {
-            setNavbarContent(
-                <NavBarButton fn={generatePDF}>
-                    <LuFileText />
-                    PDF
-                </NavBarButton>
-            );
+            setNavbarContent(<NavBarButton icon={<LuFileText />} text="PDF" fn={generatePDF} />);
         }
 
         return () => setNavbarContent(null);

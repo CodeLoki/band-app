@@ -21,9 +21,24 @@ function Basket({ children }: React.PropsWithChildren) {
     return (
         <div className="card bg-base-300 text-base-300-content relative">
             <div className="card-body p-3">
-                <div className="flex flex-wrap gap-1 max-h-60 overflow-y-auto pb-4 mask-b-from-90%">{children}</div>
+                <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto pb-4 mask-b-from-90%">{children}</div>
             </div>
         </div>
+    );
+}
+
+function Song({ className, children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+    return (
+        <button
+            type="button"
+            className={clsx(
+                'badge badge-sm rounded-sm cursor-pointer transition-colors text-left truncate md:truncate-none max-w-30 md:max-w-none',
+                className
+            )}
+            {...props}
+        >
+            {children}
+        </button>
     );
 }
 
@@ -122,7 +137,7 @@ export default function ShoppingCart<T extends { id: string }>({
     const activeItemIndex = selectedItems.findIndex((item) => item.id === activeItemId);
 
     return (
-        <div className="grid grid-cols-[1fr_1fr_auto] gap-4 min-h-[250px]">
+        <div className="grid grid-cols-2 md:grid-cols-[1fr_1fr_auto] gap-4 min-h-[250px]">
             {/* Hidden inputs for form submission */}
             {selectedItems.map((item, index) => (
                 <input key={`${item.id}-${index}`} type="hidden" name={name} value={String(item.id)} />
@@ -131,36 +146,31 @@ export default function ShoppingCart<T extends { id: string }>({
             {/* Available Items */}
             <Basket>
                 {allItems.map((item) => (
-                    <button
+                    <Song
                         key={item.id}
-                        type="button"
                         onClick={() => handleAddItem(item)}
-                        className="badge badge-sm rounded-md cursor-pointer badge-soft hover:badge-accent transition-colors"
+                        className={activeItemId === item.id ? 'badge-accent' : 'badge-soft'}
                     >
                         {item[labelField] as string}
-                    </button>
+                    </Song>
                 ))}
             </Basket>
 
             {/* Selected Items */}
             <Basket>
                 {selectedItems.map((item) => (
-                    <button
+                    <Song
                         key={item.id}
-                        type="button"
                         onClick={() => handleSelectItem(item.id)}
-                        className={clsx(
-                            'badge badge-sm rounded-md cursor-pointer transition-colors',
-                            activeItemId === item.id ? 'badge-accent' : 'badge-soft'
-                        )}
+                        className={activeItemId === item.id ? 'badge-accent' : 'badge-soft'}
                     >
                         {item[labelField] as string}
-                    </button>
+                    </Song>
                 ))}
             </Basket>
 
             {/* Toolbar */}
-            <ul className="menu bg-base-300 rounded-box h-full flex flex-col">
+            <ul className="menu bg-base-300 rounded-box col-span-2 md:col-span-1 flex flex-row md:flex-col w-full md:w-auto md:h-full">
                 <li>
                     <ToolbarButton
                         fn={() => {
@@ -191,8 +201,7 @@ export default function ShoppingCart<T extends { id: string }>({
                         disabled={activeItemId === null}
                     />
                 </li>
-                <li className="flex-1 bg-transparent"></li>
-                <li>
+                <li className="ml-auto md:ml-0 md:mt-auto">
                     <ToolbarButton
                         fn={() => {
                             handleClearAll();

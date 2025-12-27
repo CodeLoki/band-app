@@ -3,6 +3,7 @@ import { useCallback, useRef } from 'react';
 import { LuCircleX, LuTrash2 } from 'react-icons/lu';
 import { Form, useLoaderData } from 'react-router';
 import CommandPanel from '@/components/CommandPanel';
+import EditCard from '@/components/EditCard';
 import Checklist from '@/components/ui/Checklist';
 import SelectInput from '@/components/ui/SelectInput';
 import TextArea from '@/components/ui/TextArea';
@@ -173,111 +174,102 @@ export default function EditSong() {
     return (
         <>
             <title>{pageTitle}</title>
-            <div className="max-w-5xl mx-auto my-5">
-                <div className="card card-border bg-neutral shadow-xl">
-                    <Form ref={formRef} className="card-body">
-                        <div className="space-y-4">
-                            <TextInput label="Title" name="title" defaultValue={initialData.title} />
+            <EditCard>
+                <Form ref={formRef} className="space-y-4">
+                    <TextInput label="Title" name="title" defaultValue={initialData.title} />
 
-                            <TextInput label="Artist" name="artist" defaultValue={initialData.artist} />
+                    <TextInput label="Artist" name="artist" defaultValue={initialData.artist} />
 
-                            <TextInput
-                                label="Length (seconds)"
-                                name="length"
-                                defaultValue={initialData.length}
-                                type="number"
-                            />
+                    <TextInput label="Length" name="length" defaultValue={initialData.length} type="number" />
 
-                            <SelectInput
-                                label="Starts With"
-                                name="startsWith"
-                                defaultValue={initialData.startsWith || StartsWith.All}
-                                options={getOptionsFromMap(startsWithMap)}
-                            />
+                    <SelectInput
+                        label="Starts With"
+                        name="startsWith"
+                        defaultValue={initialData.startsWith || StartsWith.All}
+                        options={getOptionsFromMap(startsWithMap)}
+                    />
 
-                            <SelectInput
-                                label="Features"
-                                name="features"
-                                defaultValue={initialData.features || Instrument.None}
-                                options={getOptionsFromMap(instrumentMap, true)}
-                            />
+                    <SelectInput
+                        label="Features"
+                        name="features"
+                        defaultValue={initialData.features || Instrument.None}
+                        options={getOptionsFromMap(instrumentMap, true)}
+                    />
 
-                            <Checklist
-                                label="Solos"
-                                name="solos"
-                                options={getOptionsFromMap(instrumentMap)}
-                                values={initialData.solos}
-                            />
+                    <Checklist
+                        label="Solos"
+                        name="solos"
+                        options={getOptionsFromMap(instrumentMap)}
+                        values={initialData.solos}
+                    />
 
-                            <TextArea label="GrooveScribe" name="groove" defaultValue={initialData.groove} />
+                    <TextArea label="GrooveScribe" name="groove" defaultValue={initialData.groove} />
 
-                            <TextInput label="YT Music" name="ytMusic" defaultValue={initialData.ytMusic} />
+                    <TextInput label="YT Music" name="ytMusic" defaultValue={initialData.ytMusic} />
 
-                            <TextInput label="Drum Notes" name="notes" defaultValue={initialData.notes} />
+                    <TextInput label="Drum Notes" name="notes" defaultValue={initialData.notes} />
 
-                            <SelectInput
-                                label="Percussion Pad"
-                                name="pad"
-                                defaultValue={initialData.pad || DrumPad.None}
-                                options={getOptionsFromMap(drumPadMap, true)}
-                            />
+                    <SelectInput
+                        label="Percussion"
+                        name="pad"
+                        defaultValue={initialData.pad || DrumPad.None}
+                        options={getOptionsFromMap(drumPadMap, true)}
+                    />
 
-                            <Checklist
-                                label="Bands"
-                                name="bands"
-                                options={bands.map((b) => {
-                                    const { id, description } = b.data();
-                                    return {
-                                        value: id,
-                                        label: description
-                                    };
-                                })}
-                                values={(initialData.bands ?? []).map(({ id }) => id)}
-                            />
+                    <Checklist
+                        label="Bands"
+                        name="bands"
+                        options={bands.map((b) => {
+                            const { id, description } = b.data();
+                            return {
+                                value: id,
+                                label: description
+                            };
+                        })}
+                        values={(initialData.bands ?? []).map(({ id }) => id)}
+                    />
 
-                            <label className="flex items-center gap-3 cursor-pointer hover:bg-base-200 rounded-lg p-2 transition-colors">
-                                <input
-                                    type="checkbox"
-                                    name="practice"
-                                    value="practice"
-                                    className="checkbox checkbox-accent"
-                                    defaultChecked={initialData.practice}
-                                />
-                                <span className="label-text text-sm">Flag for practice</span>
-                            </label>
-                        </div>
-                    </Form>
-                </div>
-                <dialog ref={deleteModalRef} className="modal">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg">Delete Song</h3>
-                        <p className="py-4">
-                            Are you sure you want to delete "<strong>{song?.data()?.title ?? 'this song'}</strong>"?
-                        </p>
-                        <p className="text-warning text-sm">This action cannot be undone.</p>
-                        <div className="modal-action">
-                            <button type="button" className="btn btn-error" onClick={performDelete}>
-                                <LuTrash2 />
-                                Delete
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-neutral"
-                                onClick={() => deleteModalRef.current?.close()}
-                            >
-                                <LuCircleX />
-                                Cancel
-                            </button>
-                        </div>
+                    <label className="flex items-center gap-3 cursor-pointer hover:bg-base-200 rounded-lg p-2 transition-colors">
+                        <input
+                            type="checkbox"
+                            name="practice"
+                            value="practice"
+                            className="checkbox checkbox-accent"
+                            defaultChecked={initialData.practice}
+                        />
+                        <span className="label-text text-sm">Flag for practice</span>
+                    </label>
+                </Form>
+            </EditCard>
+            <dialog ref={deleteModalRef} className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Delete Song</h3>
+                    <p className="py-4">
+                        Are you sure you want to delete "<strong>{song?.data()?.title ?? 'this song'}</strong>"?
+                    </p>
+                    <p className="text-warning text-sm">This action cannot be undone.</p>
+                    <div className="modal-action">
+                        <button type="button" className="btn btn-error" onClick={performDelete}>
+                            <LuTrash2 />
+                            Delete
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-neutral"
+                            onClick={() => deleteModalRef.current?.close()}
+                        >
+                            <LuCircleX />
+                            Cancel
+                        </button>
                     </div>
-                </dialog>
+                </div>
+            </dialog>
 
-                <CommandPanel
-                    handleSave={handleSave}
-                    handleDelete={songId !== 'new' ? handleDelete : undefined}
-                    handleReset={resetEditState}
-                />
-            </div>
+            <CommandPanel
+                handleSave={handleSave}
+                handleDelete={songId !== 'new' ? handleDelete : undefined}
+                handleReset={resetEditState}
+            />
         </>
     );
 }

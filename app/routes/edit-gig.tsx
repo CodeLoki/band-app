@@ -16,6 +16,7 @@ import { useCallback, useRef, useState } from 'react';
 import { LuCircleX, LuTrash2 } from 'react-icons/lu';
 import { Form, useLoaderData } from 'react-router';
 import CommandPanel from '@/components/CommandPanel';
+import EditCard from '@/components/EditCard';
 import ShoppingCart from '@/components/ShoppingCart';
 import DateInput from '@/components/ui/DateInput';
 import TextInput from '@/components/ui/TextInput';
@@ -232,71 +233,68 @@ export default function EditGigTest() {
     return (
         <>
             <title>{pageTitle}</title>
-            <div className="m-8">
-                <div className="card bg-base-100 text-base-100-content card-border border-base-300 shadow-xl">
-                    <Form ref={formRef} className="card-body space-y-4">
-                        <DateInput label="Date" name="date" currentValue={gigData?.date} />
-                        <TextInput label="Venue" name="venue" defaultValue={gigData?.venue ?? ''} />
+            <EditCard>
+                <Form ref={formRef} className="space-y-4">
+                    <DateInput label="Date" name="date" currentValue={gigData?.date} />
+                    <TextInput label="Venue" name="venue" defaultValue={gigData?.venue ?? ''} />
 
-                        <h2 className="card-title mt-4">Set One Songs ({calculateSetListLength(currentSetOne)})</h2>
-                        <ShoppingCart
-                            allItems={getSongsFromDocs(availableSongs)}
-                            selectedItems={getSongsFromDocs(currentSetOne)}
-                            name="setOne"
-                            labelField="title"
-                            onChange={(songs) => setCurrentSetOne(getSnapshotsFromSongs(songs))}
-                        />
+                    <h2 className="card-title mt-4">Set One Songs ({calculateSetListLength(currentSetOne)})</h2>
+                    <ShoppingCart
+                        allItems={getSongsFromDocs(availableSongs)}
+                        selectedItems={getSongsFromDocs(currentSetOne)}
+                        name="setOne"
+                        labelField="title"
+                        onChange={(songs) => setCurrentSetOne(getSnapshotsFromSongs(songs))}
+                    />
 
-                        <h2 className="card-title mt-4">Set Two Songs ({calculateSetListLength(currentSetTwo)})</h2>
-                        <ShoppingCart
-                            allItems={getSongsFromDocs(availableSongs)}
-                            selectedItems={getSongsFromDocs(currentSetTwo)}
-                            name="setTwo"
-                            labelField="title"
-                            onChange={(songs) => setCurrentSetTwo(getSnapshotsFromSongs(songs))}
-                        />
+                    <h2 className="card-title mt-4">Set Two Songs ({calculateSetListLength(currentSetTwo)})</h2>
+                    <ShoppingCart
+                        allItems={getSongsFromDocs(availableSongs)}
+                        selectedItems={getSongsFromDocs(currentSetTwo)}
+                        name="setTwo"
+                        labelField="title"
+                        onChange={(songs) => setCurrentSetTwo(getSnapshotsFromSongs(songs))}
+                    />
 
-                        <h2 className="card-title mt-4">Pocket Songs ({calculateSetListLength(currentPocket)})</h2>
-                        <ShoppingCart
-                            allItems={getSongsFromDocs(availableSongs)}
-                            selectedItems={getSongsFromDocs(currentPocket)}
-                            name="pocket"
-                            labelField="title"
-                            onChange={(songs) => setCurrentPocket(getSnapshotsFromSongs(songs))}
-                        />
-                    </Form>
-                </div>
-
-                <dialog ref={deleteModalRef} className="modal">
-                    <div className="modal-box">
-                        <h3 className="font-bold text-lg">Delete Gig</h3>
-                        <p className="py-4">
-                            Are you sure you want to delete "<strong>{getGigTitle(gig?.data())}</strong>"?
-                        </p>
-                        <p className="text-warning text-sm">This action cannot be undone.</p>
-                        <div className="modal-action">
-                            <button type="button" className="btn btn-error" onClick={performDelete}>
-                                <LuTrash2 />
-                                Delete
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-neutral"
-                                onClick={() => deleteModalRef.current?.close()}
-                            >
-                                <LuCircleX />
-                                Cancel
-                            </button>
-                        </div>
+                    <h2 className="card-title mt-4">Pocket Songs ({calculateSetListLength(currentPocket)})</h2>
+                    <ShoppingCart
+                        allItems={getSongsFromDocs(availableSongs)}
+                        selectedItems={getSongsFromDocs(currentPocket)}
+                        name="pocket"
+                        labelField="title"
+                        onChange={(songs) => setCurrentPocket(getSnapshotsFromSongs(songs))}
+                    />
+                </Form>
+            </EditCard>
+            <dialog ref={deleteModalRef} className="modal">
+                <div className="modal-box">
+                    <h3 className="font-bold text-lg">Delete Gig</h3>
+                    <p className="py-4">
+                        Are you sure you want to delete "<strong>{getGigTitle(gig?.data())}</strong>"?
+                    </p>
+                    <p className="text-warning text-sm">This action cannot be undone.</p>
+                    <div className="modal-action">
+                        <button type="button" className="btn btn-error" onClick={performDelete}>
+                            <LuTrash2 />
+                            Delete
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-neutral"
+                            onClick={() => deleteModalRef.current?.close()}
+                        >
+                            <LuCircleX />
+                            Cancel
+                        </button>
                     </div>
-                </dialog>
+                </div>
+            </dialog>
 
-                <CommandPanel
-                    handleSave={handleSave}
-                    handleDelete={gigId !== 'new' ? handleDelete : undefined}
-                    handleReset={resetEditState}
-                />
-            </div>
+            <CommandPanel
+                handleSave={handleSave}
+                handleDelete={gigId !== 'new' ? handleDelete : undefined}
+                handleReset={resetEditState}
+            />
         </>
     );
 }
