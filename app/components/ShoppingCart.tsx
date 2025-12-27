@@ -32,7 +32,7 @@ function Song({ className, children, ...props }: React.ButtonHTMLAttributes<HTML
         <button
             type="button"
             className={clsx(
-                'badge badge-sm rounded-sm cursor-pointer transition-colors text-left truncate md:truncate-none max-w-30 md:max-w-none',
+                'badge badge-sm rounded-sm cursor-pointer transition-colors text-left truncate md:whitespace-normal max-w-30 md:max-w-none',
                 className
             )}
             {...props}
