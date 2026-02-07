@@ -1,13 +1,15 @@
+import clsx from 'clsx';
 import { collection, getDocs, type QueryDocumentSnapshot, query, where } from 'firebase/firestore';
-import { LuCirclePlus } from 'react-icons/lu';
+import { LuCirclePlus, LuMusic } from 'react-icons/lu';
 import { useLoaderData } from 'react-router';
 import NavLink from '@/components/NavLink';
+import SvgLogo from '@/components/SvgLogo';
 import { db } from '@/config/firebase';
 import { useFirestore } from '@/contexts/Firestore';
 import { type Gig, gigConverter } from '@/firestore/gigs';
 import { useNavigateWithParams } from '@/hooks/useNavigateWithParams';
 import { type AppData, loadAppData } from '@/loaders/appData';
-import { CardStyle, getTitle, sortBy } from '@/utils/general';
+import { getTitle, sortBy } from '@/utils/general';
 
 interface HomeLoaderData extends Pick<AppData, 'band'> {
     gigs: QueryDocumentSnapshot<Gig>[];
@@ -30,23 +32,26 @@ const renderGig = (gig: QueryDocumentSnapshot<Gig>) => {
         date = data.date.toDate().toLocaleDateString();
 
     return (
-        <NavLink
-            key={gig.id}
-            to={`gig/${gig.id}`}
-            className={CardStyle}
-            aria-label={`${data.venue} on ${date}`}
-            data-gig-id={gig.id}
-        >
-            <div className="card-body text-center p-6">
-                <h2 className="card-title justify-center">{data.venue}</h2>
-                <p>Date: {date}</p>
+        <li key={gig.id} className="list-row">
+            <div>
+                <LuMusic className="size-8" />
             </div>
-        </NavLink>
+            <NavLink
+                to={`gig/${gig.id}`}
+                aria-label={`${data.venue} on ${date}`}
+                data-gig-id={gig.id}
+                className="w-full"
+            >
+                <div>{data.venue}</div>
+                <div className="text-xs uppercase font-semibold opacity-60">Date: {date}</div>
+            </NavLink>
+        </li>
     );
 };
 
 export default function Home() {
     const { band, gigs } = useLoaderData<HomeLoaderData>(),
+        bandData = band.data(),
         { canEdit } = useFirestore(),
         { navigate } = useNavigateWithParams();
 
@@ -55,8 +60,22 @@ export default function Home() {
     return (
         <>
             <title>{pageTitle}</title>
-            <div className="bg-base-800 m-4 grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {gigs.length ? gigs.map(renderGig) : <p className="text-center col-span-full">No gigs scheduled.</p>}
+            <div className="flex flex-col gap-4 m-4 md:flex-row">
+                {bandData.logo ? (
+                    <SvgLogo
+                        band={band}
+                        className={clsx(
+                            'shrink-0 fill-slate-200 w-full',
+                            '[&_svg]:max-h-[40vh] [&_svg]:justify-self-center [&_svg]:align-self-center',
+                            'md:w-1/2 md:[&_svg]:max-h-[70vh]'
+                        )}
+                    />
+                ) : null}
+
+                <ul className="list w-full bg-base-100 rounded-box shadow-md">
+                    <li className="p-4 text-lg text-accent bold">{bandData.description}</li>
+                    {gigs.length ? gigs.map(renderGig) : <li className="list-row">No gigs scheduled yet.</li>}
+                </ul>
             </div>
             {canEdit ? (
                 <div className="fab">

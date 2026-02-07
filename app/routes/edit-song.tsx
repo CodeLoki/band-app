@@ -229,15 +229,15 @@ export default function EditSong() {
                         values={(initialData.bands ?? []).map(({ id }) => id)}
                     />
 
-                    <label className="flex items-center gap-3 cursor-pointer hover:bg-base-200 rounded-lg p-2 transition-colors">
+                    <label className="label flex items-center gap-3 cursor-pointer hover:bg-base-200 rounded-lg p-2 transition-colors">
                         <input
                             type="checkbox"
                             name="practice"
                             value="practice"
-                            className="checkbox checkbox-accent"
                             defaultChecked={initialData.practice}
+                            className="toggle"
                         />
-                        <span className="label-text text-sm">Flag for practice</span>
+                        Flag for practice
                     </label>
                 </Form>
             </EditCard>

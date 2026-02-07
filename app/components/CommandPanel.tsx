@@ -61,10 +61,10 @@ export default function CommandPanel({ handleSave, handleDelete, handleReset }: 
             </button>
             {buttons.map(({ text, icon, color, onClick }) => (
                 <div key={text}>
-                    {text}
+                    <span className="bg-neutral/75 py-2 px-4 rounded-md border border-accent">{text}</span>
                     <button
                         type="button"
-                        className={clsx(cssCommon, color)}
+                        className={clsx(cssCommon, color, 'border border-accent')}
                         onClick={(e) => handleClick(e, onClick)}
                         aria-label={text}
                     >

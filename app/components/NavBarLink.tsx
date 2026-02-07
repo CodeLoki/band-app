@@ -1,8 +1,7 @@
 import clsx from 'clsx';
 import NavLink, { type NavLinkProps } from '@/components/NavLink';
 
-export const NavButtonStyle =
-    'btn btn-sm btn-soft btn-accent border border-neutral-content/30 aspect-square md:aspect-auto';
+export const NavButtonStyle = 'btn btn-sm btn-soft btn-accent border border-neutral-content/30';
 
 interface NavBarLinkProps extends Omit<NavLinkProps, 'children'> {
     /** The text to display */
@@ -18,7 +17,7 @@ export default function NavBarLink({ text, icon, className, ...props }: NavBarLi
     return (
         <NavLink className={clsx(NavButtonStyle, className)} title={text} {...props}>
             {icon}
-            <span className="hidden md:inline">{text}</span>
+            <span>{text}</span>
         </NavLink>
     );
 }

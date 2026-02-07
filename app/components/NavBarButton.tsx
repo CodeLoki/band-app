@@ -17,7 +17,7 @@ export default function NavBarButton({ fn, className, icon, text, ...props }: Na
     return (
         <button type="button" onClick={fn} className={clsx(NavButtonStyle, className)} title={text} {...props}>
             {icon}
-            <span className="hidden md:inline">{text}</span>
+            <span>{text}</span>
         </button>
     );
 }
