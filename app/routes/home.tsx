@@ -66,7 +66,7 @@ export default function Home() {
                         band={band}
                         className={clsx(
                             'shrink-0 fill-slate-200 w-full',
-                            '[&_svg]:max-h-[40vh] [&_svg]:justify-self-center [&_svg]:align-self-center',
+                            '[&_svg]:max-h-[40vh] [&_svg]:mx-auto',
                             'sm:w-1/2 sm:[&_svg]:max-h-[70vh]'
                         )}
                     />
