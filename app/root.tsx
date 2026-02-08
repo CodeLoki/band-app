@@ -1,4 +1,5 @@
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
+import type React from 'react';
 import { useCallback } from 'react';
 import { LuAudioLines, LuHouse, LuLogIn } from 'react-icons/lu';
 import { href, Outlet, ScrollRestoration, useLoaderData, useLocation, useNavigate, useNavigation } from 'react-router';
@@ -15,6 +16,7 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import type { Band } from '@/firestore/bands';
 import type { User } from '@/firestore/songs';
 import { type AppData, loadAppData } from '@/loaders/appData';
+
 import './tailwind.css';
 
 export { default as ErrorBoundary } from '@/components/ErrorBoundary';
@@ -40,7 +42,7 @@ export default function Root() {
                         <FirestoreProvider userCode={appData.user}>
                             <ActionModeProvider>
                                 <title>{appData.band.get('description')}</title>
-                                <main className="text-base-content bg-base-200 min-h-screen">
+                                <main className="text-base-content bg-base-100 min-h-screen">
                                     <NavbarContent band={appData.band} bands={appData.bands} />
                                     {isNavigating ? <Loading /> : <Outlet />}
                                     <Toasts />
@@ -120,11 +122,11 @@ function LeftNav({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Qu
         <>
             {isOnHomeRoute ? null : <GoHomeButton />}
 
-            <ul className="menu menu-horizontal px-1">
+            <ul className="menu menu-horizontal p-0">
                 <li>
                     <details>
                         <summary>{description}</summary>
-                        <ul className="bg-neutral rounded-sm w-52 p-2 shadow z-10">
+                        <ul className="bg-neutral rounded-sm w-52 p-0 shadow z-10">
                             {bands.map((b) => {
                                 const { description } = b.data();
                                 return (
@@ -177,7 +179,7 @@ function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; ban
     }
 
     return (
-        <div className="navbar sticky top-0 z-50 bg-neutral text-neutral-content shadow-md items-center gap-1 px-3 py-1 min-h-auto">
+        <div className="navbar sticky top-0 z-50 bg-neutral text-neutral-content shadow-xl items-center gap-1 px-3 py-1 min-h-auto">
             <div className="flex-1 flex items-center gap-2">
                 <LeftNav band={band} bands={bands} />
             </div>

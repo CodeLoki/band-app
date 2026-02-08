@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import DOMPurify from 'dompurify';
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
 import type { Band } from '@/firestore/bands';
 
@@ -12,7 +13,11 @@ export default function SvgLogo({ band, className }: { band: QueryDocumentSnapsh
         <div
             className={clsx('fill-current', className)}
             // biome-ignore lint/security/noDangerouslySetInnerHtml: html comes from trusted source
-            dangerouslySetInnerHTML={{ __html: logo }}
+            dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(logo, {
+                    USE_PROFILES: { svg: true, svgFilters: true }
+                })
+            }}
         />
     );
 }

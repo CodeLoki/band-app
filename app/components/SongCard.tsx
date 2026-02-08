@@ -6,7 +6,6 @@ import { ActionMode, useActionContext } from '@/contexts/ActionContext';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { type Song, User } from '@/firestore/songs';
-import { CardStyle } from '@/utils/general';
 import { getSongNotes, type SongNote, SongNoteType } from '@/utils/song-notes';
 
 type BadgeColor = 'badge-accent' | 'badge-success' | 'badge-warning' | 'badge-error';
@@ -165,7 +164,7 @@ export default function SongCard({ song }: SongCardProps) {
             <button
                 key={song.id}
                 type="button"
-                className={CardStyle}
+                className="card bg-base-100 card-border border-neutral card-sm hover:-translate-y-1 transition-all duration-200 cursor-pointer w-full"
                 onClick={handleClick}
                 aria-label={`${songData.title} by ${songData.artist}`}
                 data-song-card-id={song.id}

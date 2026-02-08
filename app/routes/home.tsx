@@ -42,7 +42,7 @@ const renderGig = (gig: QueryDocumentSnapshot<Gig>) => {
                 data-gig-id={gig.id}
                 className="w-full"
             >
-                <div>{data.venue}</div>
+                <div className="text-accent">{data.venue}</div>
                 <div className="text-xs uppercase font-semibold opacity-60">Date: {date}</div>
             </NavLink>
         </li>
@@ -73,7 +73,7 @@ export default function Home() {
                 ) : null}
 
                 <ul className="list w-full bg-base-100 rounded-box shadow-md">
-                    <li className="p-4 text-lg text-accent bold">{bandData.description}</li>
+                    <li className="p-4 text-lg text-accent font-bold">{bandData.description}</li>
                     {gigs.length ? gigs.map(renderGig) : <li className="list-row">No gigs scheduled yet.</li>}
                 </ul>
             </div>
