@@ -431,8 +431,8 @@ describe('Gig route', () => {
             const navbarContent = mockSetNavbarContent.mock.calls[0][0];
             const generatePDF = navbarContent.props.fn;
 
-            // Call generatePDF
-            generatePDF();
+            // Call generatePDF (now async due to dynamic import)
+            await generatePDF();
 
             // Verify PDF methods were called
             expect(mockPdfMethods.setFont).toHaveBeenCalled();
@@ -476,9 +476,9 @@ describe('Gig route', () => {
                 expect(mockSetNavbarContent).toHaveBeenCalled();
             });
 
-            // Get and call the generatePDF function
+            // Get and call the generatePDF function (now async due to dynamic import)
             const navbarContent = mockSetNavbarContent.mock.calls[0][0];
-            navbarContent.props.fn();
+            await navbarContent.props.fn();
 
             // Check that text() was called with song titles (titles now include notes like "Song (Drums count in)")
             const textCalls = mockPdfMethods.text.mock.calls.map((call: unknown[]) => call[0] as string);
@@ -520,9 +520,9 @@ describe('Gig route', () => {
                 expect(mockSetNavbarContent).toHaveBeenCalled();
             });
 
-            // Get and call the generatePDF function
+            // Get and call the generatePDF function (now async due to dynamic import)
             const navbarContent = mockSetNavbarContent.mock.calls[0][0];
-            navbarContent.props.fn();
+            await navbarContent.props.fn();
 
             // Verify error toast was shown
             expect(mockShowError).toHaveBeenCalledWith('Failed to generate PDF', {
@@ -571,9 +571,9 @@ describe('Gig route', () => {
                 expect(mockSetNavbarContent).toHaveBeenCalled();
             });
 
-            // Get and call the generatePDF function
+            // Get and call the generatePDF function (now async due to dynamic import)
             const navbarContent = mockSetNavbarContent.mock.calls[0][0];
-            navbarContent.props.fn();
+            await navbarContent.props.fn();
 
             // With 30 songs (15 per set), pocket should trigger addPage
             expect(mockPdfMethods.addPage).toHaveBeenCalled();

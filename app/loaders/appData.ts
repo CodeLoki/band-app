@@ -21,9 +21,11 @@ async function loadBands(): Promise<QueryDocumentSnapshot<Band>[]> {
     return bandsCache;
 }
 
+export const DefaultBandId = 'qRphnEOTg8GeDc0dQa4K';
+
 export async function loadAppData(request: Request): Promise<AppData> {
     const url = new URL(request.url),
-        b = url.searchParams.get('b') ?? 'qRphnEOTg8GeDc0dQa4K',
+        b = url.searchParams.get('b') ?? DefaultBandId,
         u = url.searchParams.get('u') as User | null;
 
     // Load bands from cache or fetch if not cached

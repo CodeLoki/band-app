@@ -114,7 +114,7 @@ export default function SongsIndex() {
                             songs.map((song) => <SongCard song={song} key={song.id} />)
                         ) : (
                             <div className="p-4">
-                                <div className="alert alert-info">
+                                <div className="alert alert-warning">
                                     <span>No songs found for the current filter.</span>
                                 </div>
                             </div>

@@ -26,9 +26,6 @@ export function sortBy<T extends DocumentSnapshot>(models: T[], key: keyof Docum
     });
 }
 
-export const CardStyle =
-    'card bg-base-100 card-border border-neutral card-sm hover:-translate-y-1 transition-all duration-200 cursor-pointer w-full';
-
 export function getTitle(title: string, band: DocumentSnapshot<Band>): string {
     return `${title} | ${band.get('description')}`;
 }

@@ -1,8 +1,8 @@
-import clsx from 'clsx';
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
+import type React from 'react';
 import { useCallback } from 'react';
-import { LuAudioLines, LuChevronDown, LuHouse, LuListMusic } from 'react-icons/lu';
-import { Outlet, ScrollRestoration, useLoaderData, useLocation, useNavigate, useNavigation } from 'react-router';
+import { LuAudioLines, LuHouse, LuLogIn } from 'react-icons/lu';
+import { href, Outlet, ScrollRestoration, useLoaderData, useLocation, useNavigate, useNavigation } from 'react-router';
 import Loading from '@/components/Loading';
 import NavBarLink from '@/components/NavBarLink';
 import NavLink from '@/components/NavLink';
@@ -16,6 +16,7 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import type { Band } from '@/firestore/bands';
 import type { User } from '@/firestore/songs';
 import { type AppData, loadAppData } from '@/loaders/appData';
+
 import './tailwind.css';
 
 export { default as ErrorBoundary } from '@/components/ErrorBoundary';
@@ -41,7 +42,7 @@ export default function Root() {
                         <FirestoreProvider userCode={appData.user}>
                             <ActionModeProvider>
                                 <title>{appData.band.get('description')}</title>
-                                <main className="text-base-content bg-base-200 min-h-screen">
+                                <main className="text-base-content bg-base-100 min-h-screen">
                                     <NavbarContent band={appData.band} bands={appData.bands} />
                                     {isNavigating ? <Loading /> : <Outlet />}
                                     <Toasts />
@@ -56,123 +57,140 @@ export default function Root() {
     );
 }
 
-function BandName({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
-    const { isMe, canEdit, login, user } = useFirestore(),
+function GoHomeButton() {
+    return (
+        <NavLink
+            to={href('/')}
+            title="Go Home"
+            className="btn btn-square btn-sm btn-soft btn-accent border border-neutral-content/30"
+        >
+            <LuHouse className="size-4" />
+            <span className="sr-only">Go Home</span>
+        </NavLink>
+    );
+}
+
+function LoginButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+    return (
+        <button
+            type="button"
+            className="btn btn-square btn-sm btn-soft btn-accent border border-neutral-content/30"
+            data-testid="btn-login"
+            title="Login"
+            {...props}
+        >
+            <LuLogIn className="size-4" />
+            <span className="sr-only">Login</span>
+        </button>
+    );
+}
+
+function LeftNav({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
+    const { isMe, canEdit, user } = useFirestore(),
         navigate = useNavigate(),
+        { pathname } = useLocation(),
+        isOnHomeRoute = pathname === '/',
         cssBandName = 'text-md flex items-center gap-2',
-        cssBandButton = `btn btn-neutral`,
-        { description } = band.data(),
-        Icon = <LuListMusic className="h-5 w-5 flex-none hidden md:block" />;
+        { description } = band.data();
 
     const updateBand = useCallback(
         (b: QueryDocumentSnapshot<Band>, u: User, event: React.MouseEvent) => {
-            // Remove focus from the clicked element to close the dropdown
-            (event.currentTarget as HTMLElement).blur();
+            // Close the details element
+            const details = (event.currentTarget as HTMLElement).closest('details');
+            if (details) {
+                details.removeAttribute('open');
+            }
 
             void navigate(`/?b=${b.id}&u=${u}`);
         },
         [navigate]
     );
 
-    if (!isMe) {
-        return (
-            <h1 className={clsx(cssBandName, 'pointer-events-none')} data-testid="band-name">
-                {Icon}
-                {description}
-            </h1>
-        );
-    }
+    if (!isMe || !canEdit) {
+        if (isOnHomeRoute) {
+            return null;
+        }
 
-    if (canEdit) {
         return (
-            <h1 className="dropdown dropdown-start">
-                <button
-                    className={clsx(cssBandName, cssBandButton, 'flex items-center gap-2')}
-                    tabIndex={0}
-                    type="button"
-                    data-testid="band-name"
-                >
-                    {Icon}
-                    <span>{description}</span>
-                    <LuChevronDown className="w-4 h-4 opacity-70" />
-                </button>
-                <ul tabIndex={-1} className="dropdown-content menu bg-neutral rounded-b-md w-52 p-2 shadow z-10">
-                    {bands.map((b) => {
-                        const { description } = b.data();
-                        return (
-                            <li key={b.id}>
-                                <button type="button" onClick={(event) => updateBand(b, user, event)}>
-                                    {description}
-                                </button>
-                            </li>
-                        );
-                    })}
-                </ul>
-            </h1>
+            <>
+                <GoHomeButton />
+                <h1 className={cssBandName} data-testid="band-name">
+                    {description}
+                </h1>
+            </>
         );
     }
 
     return (
-        <button type="button" className={clsx(cssBandName, cssBandButton)} onClick={login} data-testid="band-name">
-            {Icon}
-            {description}
-        </button>
+        <>
+            {isOnHomeRoute ? null : <GoHomeButton />}
+
+            <ul className="menu menu-horizontal p-0">
+                <li>
+                    <details>
+                        <summary>{description}</summary>
+                        <ul className="bg-neutral rounded-sm w-52 p-0 shadow z-10">
+                            {bands.map((b) => {
+                                const { description } = b.data();
+                                return (
+                                    <li key={b.id}>
+                                        <button type="button" onClick={(event) => updateBand(b, user, event)}>
+                                            {description}
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </>
     );
 }
 
 function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: QueryDocumentSnapshot<Band>[] }) {
-    const { navbarContent } = useNavbar(),
+    const { isMe, canEdit, login } = useFirestore(),
+        { navbarContent } = useNavbar(),
         location = useLocation(),
-        buttons = new Map([
-            ['/', { Icon: LuHouse, label: 'Home' }],
-            ['/songs', { Icon: LuAudioLines, label: 'Songs' }]
-        ]),
-        currentPath = location.pathname.startsWith('/songs') ? '/songs' : '/',
-        { Icon: CurrentIcon, label: currentLabel } = buttons.get(currentPath)!;
+        isOnSongsRoute = location.pathname === '/songs',
+        showLogin = isMe && !canEdit;
+
+    const controls: React.ReactNode[] = [];
+
+    if (navbarContent) {
+        controls.push(
+            <div key="navbarContent" className="flex flex-none">
+                {navbarContent}
+            </div>
+        );
+    }
+
+    if (!isOnSongsRoute || showLogin) {
+        if (controls.length) {
+            controls.push(
+                <div
+                    key="divider"
+                    className="divider divider-horizontal divider-accent/80 m-0 md:m-1 h-6 self-center"
+                ></div>
+            );
+        }
+
+        if (!isOnSongsRoute) {
+            controls.push(<NavBarLink key="songs" icon={<LuAudioLines />} text="Songs" to={href('/songs')} />);
+        }
+
+        if (showLogin) {
+            controls.push(<LoginButton key="login" onClick={login} />);
+        }
+    }
 
     return (
-        <div className="navbar sticky top-0 z-50 bg-neutral text-neutral-content shadow-md items-center gap-1 px-3 py-1 min-h-auto">
-            <div className="flex-1">
-                <BandName band={band} bands={bands} />
+        <div className="navbar sticky top-0 z-50 bg-neutral text-neutral-content shadow-xl items-center gap-1 px-3 py-1 min-h-auto">
+            <div className="flex-1 flex items-center gap-2">
+                <LeftNav band={band} bands={bands} />
             </div>
 
-            {/* Dynamic content from routes */}
-            {navbarContent && (
-                <>
-                    <div className="flex flex-none">{navbarContent}</div>
-                    <div className="divider divider-horizontal divider-accent/80 m-1 h-8 self-center"></div>
-                </>
-            )}
-
-            {/* Buttons show up on medium and larger screens  */}
-            <div className="hidden md:flex gap-2 flex-none" data-testid="desktop-nav">
-                {[...buttons.entries()].map(([to, { Icon, label }]) => (
-                    <NavBarLink icon={<Icon />} text={label} to={to} key={to} />
-                ))}
-            </div>
-
-            {/* Dropdown for small screens */}
-            <div className="md:hidden dropdown dropdown-end">
-                <button
-                    type="button"
-                    tabIndex={0}
-                    className="btn btn-sm btn-soft btn-accent border border-neutral-content/30"
-                >
-                    <CurrentIcon />
-                    {currentLabel}
-                    <LuChevronDown />
-                </button>
-                <ul tabIndex={-1} className="dropdown-content menu bg-base-100 rounded-box z-1 w-30 p-2 shadow-sm">
-                    {[...buttons.entries()].map(([to, { Icon, label }]) => (
-                        <li key={to}>
-                            <NavLink to={to} onClick={(e) => e.currentTarget.blur()}>
-                                <Icon />
-                                {label}
-                            </NavLink>
-                        </li>
-                    ))}
-                </ul>
-            </div>
+            {controls.map((control) => control)}
         </div>
     );
 }
