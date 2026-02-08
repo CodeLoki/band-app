@@ -65,6 +65,7 @@ function GoHomeButton() {
             className="btn btn-square btn-sm btn-soft btn-accent border border-neutral-content/30"
         >
             <LuHouse className="size-4" />
+            <span className="sr-only">Go Home</span>
         </NavLink>
     );
 }
@@ -75,9 +76,11 @@ function LoginButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
             type="button"
             className="btn btn-square btn-sm btn-soft btn-accent border border-neutral-content/30"
             data-testid="btn-login"
+            title="Login"
             {...props}
         >
             <LuLogIn className="size-4" />
+            <span className="sr-only">Login</span>
         </button>
     );
 }
@@ -165,7 +168,10 @@ function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; ban
     if (!isOnSongsRoute || showLogin) {
         if (controls.length) {
             controls.push(
-                <div key="divider" className="divider divider-horizontal divider-accent/80 m-1 h-6 self-center"></div>
+                <div
+                    key="divider"
+                    className="divider divider-horizontal divider-accent/80 m-0 md:m-1 h-6 self-center"
+                ></div>
             );
         }
 
