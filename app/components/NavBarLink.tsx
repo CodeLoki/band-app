@@ -17,7 +17,7 @@ export default function NavBarLink({ text, icon, className, ...props }: NavBarLi
     return (
         <NavLink className={clsx(NavButtonStyle, className)} title={text} {...props}>
             {icon}
-            <span>{text}</span>
+            <span className="hidden md:inline">{text}</span>
         </NavLink>
     );
 }

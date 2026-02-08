@@ -60,14 +60,14 @@ export default function Home() {
     return (
         <>
             <title>{pageTitle}</title>
-            <div className="flex flex-col gap-4 m-4 md:flex-row">
+            <div className="flex flex-col gap-4 m-4 sm:flex-row">
                 {bandData.logo ? (
                     <SvgLogo
                         band={band}
                         className={clsx(
                             'shrink-0 fill-slate-200 w-full',
-                            '[&_svg]:max-h-[40vh] [&_svg]:justify-self-center [&_svg]:align-self-center',
-                            'md:w-1/2 md:[&_svg]:max-h-[70vh]'
+                            '[&_svg]:max-h-[40vh] [&_svg]:mx-auto',
+                            'sm:w-1/2 sm:[&_svg]:max-h-[70vh]'
                         )}
                     />
                 ) : null}
