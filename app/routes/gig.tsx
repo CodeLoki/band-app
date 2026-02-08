@@ -67,6 +67,10 @@ function getSetListTitle(title: string, songs: DocumentSnapshot<Song>[]) {
     return `${title} (${calculateSetListLength(songs)})`;
 }
 
+function SetListTitle({ setListTitle }: { setListTitle: string }) {
+    return <h3 className="text-xl font-bold mb-4">{setListTitle}</h3>;
+}
+
 function SetList({
     title,
     songs,
@@ -81,7 +85,7 @@ function SetList({
     if (!isSingleSet) {
         return (
             <div key={title}>
-                <h3 className="text-xl font-bold mb-4">{setListTitle}</h3>
+                <SetListTitle setListTitle={setListTitle} />
                 <div className="grid grid-cols-1 gap-4">
                     {songs.length ? (
                         songs.map((song) => <SongCard song={song} key={song.id} />)
@@ -100,14 +104,14 @@ function SetList({
 
     return (
         <div key={title}>
-            <h3 className="text-xl font-bold mb-4">{setListTitle}</h3>
-            <div className="block md:flex md:gap-4 w-full">
-                <div className="space-y-4 mb-4 md:mb-0 md:flex-1">
+            <SetListTitle setListTitle={setListTitle} />
+            <div className="block sm:flex sm:gap-4 w-full">
+                <div className="space-y-4 mb-4 sm:mb-0 sm:flex-1">
                     {firstColumn.map((song) => (
                         <SongCard song={song} key={song.id} />
                     ))}
                 </div>
-                <div className="space-y-4 md:flex-1">
+                <div className="space-y-4 sm:flex-1">
                     {secondColumn.map((song) => (
                         <SongCard song={song} key={song.id} />
                     ))}
@@ -173,13 +177,13 @@ export default function GigRoute() {
                                 <SetList title="Single Set" songs={songs.one} isSingleSet={true} />
                             </div>
                             {songs.pocket.length > 0 && (
-                                <div className="grid gap-y-8 grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid gap-y-8 grid-cols-1 sm:grid-cols-2 gap-4">
                                     <SetList title="Pocket" songs={songs.pocket} />
                                 </div>
                             )}
                         </>
                     ) : (
-                        <div className="grid gap-y-8 grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid gap-y-8 grid-cols-1 sm:grid-cols-2 gap-4">
                             <SetList title="Set One" songs={songs.one} />
                             <SetList title="Set Two" songs={songs.two} />
                             <SetList title="Pocket" songs={songs.pocket} />

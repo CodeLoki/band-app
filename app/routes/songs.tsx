@@ -85,10 +85,10 @@ export default function SongsIndex() {
             <div className="p-4">
                 <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
-                        <h2 className="hidden md:block flex-1 text-2xl font-bold mb-2">Songs ({songs.length})</h2>
+                        <h2 className="flex-1 text-2xl font-bold mb-2 hidden sm:block">Songs ({songs.length})</h2>
 
                         {isMe ? (
-                            <div className="filter flex-none mx-auto md:ms-auto">
+                            <div className="filter flex-none mx-auto sm:ms-auto">
                                 {buttons.map(([v, t, c = '']) => (
                                     <input
                                         className={clsx('btn btn-sm btn-accent btn-soft', c)}
@@ -109,7 +109,7 @@ export default function SongsIndex() {
                         ) : null}
                     </div>
 
-                    <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
                         {songs.length ? (
                             songs.map((song) => <SongCard song={song} key={song.id} />)
                         ) : (

@@ -90,7 +90,7 @@ function LeftNav({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Qu
         navigate = useNavigate(),
         { pathname } = useLocation(),
         isOnHomeRoute = pathname === '/',
-        cssBandName = 'text-md flex items-center gap-2',
+        cssBandName = 'text-md text-base-content flex items-center gap-2',
         { description } = band.data();
 
     const updateBand = useCallback(
@@ -125,7 +125,7 @@ function LeftNav({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Qu
         <>
             {isOnHomeRoute ? null : <GoHomeButton />}
 
-            <ul className="menu menu-horizontal p-0">
+            <ul className="menu menu-horizontal p-0 text-base-content">
                 <li>
                     <details>
                         <summary>{description}</summary>
