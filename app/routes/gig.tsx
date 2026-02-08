@@ -15,7 +15,6 @@ import { calculateSetListLength } from '@/firestore/songs';
 import { useToastHelpers } from '@/hooks/useToastHelpers';
 import { type AppData, loadAppData } from '@/loaders/appData';
 import { getTitle } from '@/utils/general';
-import { generateSetListPdf } from '@/utils/generate-pdf';
 
 interface GigLoaderData extends Pick<AppData, 'band'> {
     gigId: string;
@@ -135,8 +134,9 @@ export default function GigRoute() {
         { showError, showSuccess } = useToastHelpers(),
         { setNavbarContent } = useNavbar();
 
-    const generatePDF = useCallback(() => {
+    const generatePDF = useCallback(async () => {
         try {
+            const { generateSetListPdf } = await import('@/utils/generate-pdf');
             generateSetListPdf(gig, songs, user);
             showSuccess('PDF generated successfully!');
         } catch (ex) {
