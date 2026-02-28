@@ -128,7 +128,7 @@ function LeftNav({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Qu
             <ul className="menu menu-horizontal p-0 text-base-content">
                 <li>
                     <details>
-                        <summary>{description}</summary>
+                        <summary data-testid="band-name">{description}</summary>
                         <ul className="bg-neutral rounded-sm w-52 p-0 shadow z-10">
                             {bands.map((b) => {
                                 const { description } = b.data();

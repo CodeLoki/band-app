@@ -23,6 +23,8 @@ export type Song = {
     title: string;
     /** Song length. */
     length: number;
+    /** Beats per minute. */
+    bpm: number;
     /** The musician that starts the song. */
     startsWith: StartsWith;
     /** The instrument featured in this song. */

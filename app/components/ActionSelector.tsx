@@ -1,57 +1,85 @@
 import clsx from 'clsx';
 import { type MouseEvent, useEffect, useState } from 'react';
-import { LuDrum, LuFilePen, LuFlag, LuMonitorPlay, LuMusic, LuSquareX } from 'react-icons/lu';
+import type { IconType } from 'react-icons/lib';
+import {
+    LuDrum,
+    LuFilePen,
+    LuFlag,
+    LuGuitar,
+    LuLightbulb,
+    LuMicVocal,
+    LuMonitorPlay,
+    LuMusic,
+    LuSquareX
+} from 'react-icons/lu';
 import { ActionMode, useActionContext } from '@/contexts/ActionContext';
 import { useFirestore } from '@/contexts/Firestore';
+import { User } from '@/firestore/songs';
 
-function getIcon(mode: ActionMode) {
-    switch (mode) {
-        case ActionMode.Practice:
-            return <LuMusic />;
-        case ActionMode.Rehearse:
-            return <LuMonitorPlay />;
-        case ActionMode.Flag:
-            return <LuFlag />;
-        case ActionMode.Edit:
-            return <LuFilePen />;
-        default:
-            return <LuDrum />;
+const ModeToIcon: Map<ActionMode, IconType> = new Map([
+    [ActionMode.Rehearse, LuMonitorPlay],
+    [ActionMode.Practice, LuMusic],
+    [ActionMode.Edit, LuFilePen],
+    [ActionMode.Flag, LuFlag],
+    [ActionMode.BPM, LuLightbulb]
+]);
+
+function getIcon(mode: ActionMode, user: User) {
+    if (ModeToIcon.has(mode)) {
+        const IconComponent = ModeToIcon.get(mode)!;
+        return <IconComponent />;
     }
+
+    if (user === User.Me) {
+        return <LuDrum />;
+    }
+
+    if (user === User.Vocals) {
+        return <LuMicVocal />;
+    }
+
+    if (user === User.Guitars) {
+        return <LuGuitar />;
+    }
+
+    return null;
 }
 
-const commonButtons: [string, ActionMode][] = [
-    ['Perform', ActionMode.Perform],
-    ['Practice', ActionMode.Practice]
-];
-
 export default function Loading() {
-    const { isMe, canEdit } = useFirestore(),
+    const { canEdit, user } = useFirestore(),
         { mode, setActionMode } = useActionContext(),
-        [icon, setIcon] = useState(getIcon(mode)),
+        [icon, setIcon] = useState(getIcon(mode, user)),
         [buttons, setButtons] = useState<[string, ActionMode][]>([]),
         cssCommon = 'btn btn-lg btn-circle';
 
     useEffect(() => {
-        const btns = [...commonButtons];
+        const btns: [string, ActionMode][] = [['Perform', ActionMode.Perform]];
 
-        if (canEdit) {
-            btns.push(['Edit', ActionMode.Edit]);
-            btns.push(['Flag', ActionMode.Flag]);
-        } else {
-            btns.push(['Rehearse', ActionMode.Rehearse]);
+        if (user === User.Me) {
+            btns.push(['Practice', ActionMode.Practice]);
+
+            if (canEdit) {
+                btns.push(['Edit', ActionMode.Edit]);
+                btns.push(['Flag', ActionMode.Flag]);
+            } else {
+                btns.push(['Rehearse', ActionMode.Rehearse]);
+                btns.push(['BPM', ActionMode.BPM]);
+            }
+        } else if (user === User.Guitars) {
+            btns.push(['BPM', ActionMode.BPM]);
         }
 
         setButtons(btns);
-    }, [canEdit]);
-
-    if (!isMe) {
-        return null;
-    }
+    }, [canEdit, user]);
 
     function handleClick(mode: ActionMode, event?: MouseEvent<HTMLButtonElement>) {
         event?.currentTarget.blur();
         setActionMode(mode);
-        setIcon(getIcon(mode));
+        setIcon(getIcon(mode, user));
+    }
+
+    if (buttons.length <= 1) {
+        return null;
     }
 
     return (
@@ -77,7 +105,7 @@ export default function Loading() {
                         onClick={(e) => handleClick(mode, e)}
                         aria-label={tip}
                     >
-                        {getIcon(mode)}
+                        {getIcon(mode, user)}
                     </button>
                 </div>
             ))}

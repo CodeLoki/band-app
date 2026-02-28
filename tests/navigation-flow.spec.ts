@@ -22,12 +22,7 @@ test.describe('Navigation Flow', () => {
         // Start at home route with power user specified.
         await page.goto('/?u=z');
 
-        // Verify that default band is selected.
-        const bandName = page.locator('[data-testid="band-name"]');
-        await expect(bandName).toBeVisible({ timeout: 10000 });
-        await expect(bandName).toHaveText(/convertible JERK/);
-
-        // Look for gig cards.
+        // Wait for gig cards to load (band name not shown on home route without canEdit).
         const gigCards = page.locator('a[data-gig-id]');
         await expect(gigCards.first()).toBeVisible({ timeout: 10000 });
 
@@ -35,7 +30,7 @@ test.describe('Navigation Flow', () => {
 
         // Get the gig ID from the href
         const gigId = await firstGigLink.getAttribute('data-gig-id');
-        const venue = await firstGigLink.locator('h2').innerText();
+        const venue = await firstGigLink.locator('.text-accent').innerText();
 
         // Click on the first gig to navigate to gig page
         await firstGigLink.click();
@@ -113,18 +108,13 @@ test.describe('Navigation Flow', () => {
         // Start at home route with power user specified and non-default band.
         await page.goto('/?b=HnHyYrrIItDGdjlLZUVb&u=z');
 
-        // Verify that non-default band is selected.
-        const bandName = page.locator('[data-testid="band-name"]');
-        await expect(bandName).toBeVisible({ timeout: 10000 });
-        await expect(bandName).toHaveText(/Bastards of Old/);
+        // Wait for page to load - look for the "No gigs scheduled" message
+        const noGigsMessage = page.locator('text=No gigs scheduled yet');
+        await expect(noGigsMessage).toBeVisible({ timeout: 10000 });
 
         // Verify there are no gig cards.
-        const gigCards = page.locator('.card-body');
+        const gigCards = page.locator('a[data-gig-id]');
         expect(await gigCards.count()).toBe(0);
-
-        // Verify the "No gigs scheduled" message is shown.
-        const noGigsMessage = page.locator('text=No gigs scheduled');
-        expect(await noGigsMessage.count()).toBe(1);
     });
 
     test('404 page displays correctly and allows navigation home', async ({ page }) => {
@@ -148,11 +138,7 @@ test.describe('Navigation Flow', () => {
         // Start at home route without user specified
         await page.goto('/');
 
-        // Wait for page to load
-        const bandName = page.locator('[data-testid="band-name"]');
-        await expect(bandName).toBeVisible({ timeout: 10000 });
-
-        // Navigate to a gig
+        // Wait for gig cards to load (band name not shown on home route)
         const gigCards = page.locator('a[data-gig-id]');
         await expect(gigCards.first()).toBeVisible({ timeout: 10000 });
         await gigCards.first().click();

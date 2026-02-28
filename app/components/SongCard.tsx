@@ -1,7 +1,8 @@
+import clsx from 'clsx';
 import { type DocumentSnapshot, updateDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import type { IconType } from 'react-icons';
-import { LuClock, LuFlag, LuGuitar, LuMusic4, LuNotepadText, LuStar } from 'react-icons/lu';
+import { LuClock, LuFlag, LuGuitar, LuLightbulb, LuMusic4, LuNotepadText, LuStar } from 'react-icons/lu';
 import { ActionMode, useActionContext } from '@/contexts/ActionContext';
 import { useFirestore } from '@/contexts/Firestore';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -106,6 +107,41 @@ interface SongCardProps {
     song: DocumentSnapshot<Song>;
 }
 
+interface IndicatorBadgeProps {
+    title: string;
+    icon: IconType;
+    className?: string;
+    bpm?: number;
+}
+
+function IndicatorBadge({ title, icon: Icon, className = 'bg-accent text-accent-content', bpm }: IndicatorBadgeProps) {
+    const style = bpm
+        ? {
+              animation: `blink ${60 / bpm}s steps(1) infinite`
+          }
+        : undefined;
+
+    return (
+        <>
+            {bpm && (
+                <style>{`
+                    @keyframes blink {
+                        0%, 50% { opacity: 1; }
+                        51%, 100% { opacity: 0; }
+                    }
+                `}</style>
+            )}
+            <div
+                className={clsx('indicator-item rounded-full p-2 right-6 top-6', className)}
+                title={title}
+                style={style}
+            >
+                <Icon />
+            </div>
+        </>
+    );
+}
+
 /**
  * A card for showing song details and allowing actions based on current user and action mode context.
  */
@@ -113,7 +149,8 @@ export default function SongCard({ song }: SongCardProps) {
     const { user, isMe, canEdit } = useFirestore(),
         { mode } = useActionContext(),
         { navigateWithParams } = useNavigation(),
-        [songData, setSongData] = useState<Song | undefined>(song.data());
+        [songData, setSongData] = useState<Song | undefined>(song.data()),
+        [isBPMActive, setBPMActive] = useState(false);
 
     if (!songData) {
         throw new Error(`Song data not found: "${song.id}"`);
@@ -145,22 +182,31 @@ export default function SongCard({ song }: SongCardProps) {
             return;
         }
 
+        if (mode === ActionMode.BPM) {
+            setBPMActive((prev) => !prev);
+            return;
+        }
+
         const link = getTabLink(songData, getTabSource(user, mode));
         if (link) {
             window.open(link);
         }
     };
 
+    const indicatorConfig = isBPMActive
+        ? {
+              title: `${songData.bpm} BPM`,
+              icon: LuLightbulb,
+              className: 'bg-warning text-warning-content',
+              bpm: songData.bpm
+          }
+        : isMe && songData.practice
+          ? { title: 'Flagged for Practice', icon: LuFlag }
+          : null;
+
     return (
         <div className="indicator w-full">
-            {isMe && songData.practice ? (
-                <div
-                    className="indicator-item bg-accent text-accent-content rounded-full p-2 right-6 top-6"
-                    title="Flagged for Practice"
-                >
-                    <LuFlag />
-                </div>
-            ) : null}
+            {indicatorConfig && <IndicatorBadge {...indicatorConfig} />}
             <button
                 key={song.id}
                 type="button"

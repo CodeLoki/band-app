@@ -92,6 +92,7 @@ export default function EditSong() {
             title: songData.title || '',
             artist: songData.artist || '',
             length: songData.length || 0,
+            bpm: songData.bpm || 0,
             startsWith: songData.startsWith || StartsWith.All,
             features: songData.features || Instrument.None,
             solos: songData.solos || [],
@@ -114,6 +115,7 @@ export default function EditSong() {
                 title: formData.get('title') as string,
                 artist: formData.get('artist') as string,
                 length: parseInt(formData.get('length') as string, 10) || 0,
+                bpm: parseInt(formData.get('bpm') as string, 10) || 0,
                 startsWith: parseInt(formData.get('startsWith') as string, 10) as StartsWith,
                 features: parseInt(formData.get('features') as string, 10) as Instrument,
                 solos: formData.getAll('solos').map((s) => parseInt(s as string, 10) as Instrument),
@@ -181,6 +183,8 @@ export default function EditSong() {
                     <TextInput label="Artist" name="artist" defaultValue={initialData.artist} />
 
                     <TextInput label="Length" name="length" defaultValue={initialData.length} type="number" />
+
+                    <TextInput label="BPM" name="bpm" defaultValue={initialData.bpm} type="number" />
 
                     <SelectInput
                         label="Starts With"

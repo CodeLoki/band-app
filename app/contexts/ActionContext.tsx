@@ -5,7 +5,8 @@ export enum ActionMode {
     Rehearse,
     Practice,
     Edit,
-    Flag
+    Flag,
+    BPM
 }
 
 interface ActionModeContextType {

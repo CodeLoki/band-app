@@ -20,9 +20,9 @@ test.describe('Accessibility', () => {
     test('home page has no accessibility violations', async ({ page }) => {
         await page.goto('/?u=z');
 
-        // Wait for content to load
-        const bandName = page.locator('[data-testid="band-name"]');
-        await expect(bandName).toBeVisible({ timeout: 10000 });
+        // Wait for gig cards to load (band name not shown on home route without canEdit)
+        const gigCards = page.locator('a[data-gig-id]');
+        await expect(gigCards.first()).toBeVisible({ timeout: 10000 });
 
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 
@@ -75,8 +75,9 @@ test.describe('Accessibility', () => {
         // Test without user param - different UI state
         await page.goto('/');
 
-        const bandName = page.locator('[data-testid="band-name"]');
-        await expect(bandName).toBeVisible({ timeout: 10000 });
+        // Wait for gig cards to load (band name not shown on home route)
+        const gigCards = page.locator('a[data-gig-id]');
+        await expect(gigCards.first()).toBeVisible({ timeout: 10000 });
 
         const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 

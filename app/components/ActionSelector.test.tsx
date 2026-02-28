@@ -1,12 +1,14 @@
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActionMode } from '@/contexts/ActionContext';
+import { User } from '@/firestore/songs';
 import ActionSelector from './ActionSelector';
 
 // Mock values that can be changed per test
 const mockContext = {
     isMe: true,
     canEdit: true,
+    user: User.Me,
     mode: ActionMode.Perform,
     setActionMode: vi.fn()
 };
@@ -25,7 +27,8 @@ vi.mock('@/contexts/ActionContext', async () => {
 vi.mock('@/contexts/Firestore', () => ({
     useFirestore: () => ({
         isMe: mockContext.isMe,
-        canEdit: mockContext.canEdit
+        canEdit: mockContext.canEdit,
+        user: mockContext.user
     })
 }));
 
@@ -33,6 +36,7 @@ describe('ActionSelector', () => {
     beforeEach(() => {
         mockContext.isMe = true;
         mockContext.canEdit = true;
+        mockContext.user = User.Me;
         mockContext.mode = ActionMode.Perform;
         mockContext.setActionMode.mockClear();
     });
@@ -120,6 +124,7 @@ describe('ActionSelector when not me', () => {
     beforeEach(() => {
         mockContext.isMe = false;
         mockContext.canEdit = false;
+        mockContext.user = User.Vocals;
     });
 
     afterEach(() => {
@@ -137,6 +142,7 @@ describe('ActionSelector without edit permissions', () => {
     beforeEach(() => {
         mockContext.isMe = true;
         mockContext.canEdit = false;
+        mockContext.user = User.Me;
         mockContext.mode = ActionMode.Perform;
         mockContext.setActionMode.mockClear();
     });
@@ -165,5 +171,67 @@ describe('ActionSelector without edit permissions', () => {
             fireEvent.click(rehearseButton);
         }
         expect(mockContext.setActionMode).toHaveBeenCalledWith(ActionMode.Rehearse);
+    });
+});
+
+describe('ActionSelector buttons by user type', () => {
+    afterEach(() => {
+        cleanup();
+    });
+
+    it('shows Perform, Practice, Edit, Flag for User.Me with canEdit', () => {
+        mockContext.user = User.Me;
+        mockContext.isMe = true;
+        mockContext.canEdit = true;
+
+        render(<ActionSelector />);
+
+        expect(document.querySelector('[data-tip="Perform"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Practice"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Edit"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Flag"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Rehearse"]')).not.toBeInTheDocument();
+        expect(document.querySelector('[data-tip="BPM"]')).not.toBeInTheDocument();
+    });
+
+    it('shows Perform, Practice, Rehearse, BPM for User.Me without canEdit', () => {
+        mockContext.user = User.Me;
+        mockContext.isMe = true;
+        mockContext.canEdit = false;
+
+        render(<ActionSelector />);
+
+        expect(document.querySelector('[data-tip="Perform"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Practice"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Rehearse"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="BPM"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Edit"]')).not.toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Flag"]')).not.toBeInTheDocument();
+    });
+
+    it('shows Perform, BPM for User.Guitars', () => {
+        mockContext.user = User.Guitars;
+        mockContext.isMe = false;
+        mockContext.canEdit = false;
+
+        render(<ActionSelector />);
+
+        expect(document.querySelector('[data-tip="Perform"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="BPM"]')).toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Practice"]')).not.toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Edit"]')).not.toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Flag"]')).not.toBeInTheDocument();
+        expect(document.querySelector('[data-tip="Rehearse"]')).not.toBeInTheDocument();
+    });
+
+    it('renders nothing for User.Vocals (only Perform button)', () => {
+        mockContext.user = User.Vocals;
+        mockContext.isMe = false;
+        mockContext.canEdit = false;
+
+        const { container } = render(<ActionSelector />);
+
+        // Component returns null when there's only 1 button
+        expect(container.firstChild).toBeNull();
     });
 });
