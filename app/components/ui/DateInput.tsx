@@ -6,9 +6,17 @@ interface DateInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     currentValue?: Timestamp;
 }
 
+// Format Date to YYYY-MM-DD string using local timezone
+function formatLocalDate(date: Date) {
+    const year = date.getFullYear(),
+        month = String(date.getMonth() + 1).padStart(2, '0'),
+        day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 export default function DateInput({ label, name, currentValue, ...props }: DateInputProps) {
-    // Format Date to YYYY-MM-DD string for date input
-    const formattedValue = currentValue?.toDate().toISOString().split('T')[0] ?? '';
+    const formattedValue = currentValue ? formatLocalDate(currentValue.toDate()) : '';
 
     return (
         <label className="input w-full">

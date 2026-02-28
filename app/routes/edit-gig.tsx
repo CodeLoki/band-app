@@ -179,9 +179,12 @@ export default function EditGigTest() {
                         .filter((s) => !!s)
                         .map((s) => s?.ref);
                 },
+                // Parse date as local time (not UTC)
+                dateStr = formData.get('date') as string,
+                [year, month, day] = dateStr.split('-').map(Number),
                 gigData: Omit<Gig, 'id'> = {
                     band: band.ref,
-                    date: Timestamp.fromDate(new Date(formData.get('date') as string)),
+                    date: Timestamp.fromDate(new Date(year, month - 1, day)),
                     venue: formData.get('venue') as string,
                     one: fnGetSongsRefs(formData.getAll('setOne') as string[]),
                     two: fnGetSongsRefs(formData.getAll('setTwo') as string[]),
