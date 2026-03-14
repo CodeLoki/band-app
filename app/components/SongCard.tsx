@@ -187,6 +187,11 @@ export default function SongCard({ song }: SongCardProps) {
             return;
         }
 
+        if (user === User.Vocals) {
+            navigateWithParams(`/lyrics/${song.id}`);
+            return;
+        }
+
         const link = getTabLink(songData, getTabSource(user, mode));
         if (link) {
             window.open(link);

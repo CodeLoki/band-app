@@ -35,7 +35,7 @@
             "*.ts": "typescript"
         },
         "typescript.preferences.includePackageJsonAutoImports": "auto",
-        "cSpell.words": ["firestore", "Songsterr"]
+        "cSpell.words": ["firestore", "lrclib", "Songsterr"]
     },
     "extensions": {
         "recommendations": ["biomejs.biome", "bradlc.vscode-tailwindcss", "ms-vscode.vscode-json"]
