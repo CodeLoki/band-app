@@ -105,6 +105,7 @@ function getTabLink(song: Song, tabSource: TabSource): string | undefined {
 
 interface SongCardProps {
     song: DocumentSnapshot<Song>;
+    gigId?: string;
 }
 
 interface IndicatorBadgeProps {
@@ -145,7 +146,7 @@ function IndicatorBadge({ title, icon: Icon, className = 'bg-accent text-accent-
 /**
  * A card for showing song details and allowing actions based on current user and action mode context.
  */
-export default function SongCard({ song }: SongCardProps) {
+export default function SongCard({ song, gigId }: SongCardProps) {
     const { user, isMe, canEdit } = useFirestore(),
         { mode } = useActionContext(),
         { navigateWithParams } = useNavigation(),
@@ -188,7 +189,7 @@ export default function SongCard({ song }: SongCardProps) {
         }
 
         if (user === User.Vocals) {
-            navigateWithParams(`/lyrics/${song.id}`);
+            navigateWithParams(`/gig/${gigId ?? 'all-songs'}/lyrics/${song.id}`);
             return;
         }
 
