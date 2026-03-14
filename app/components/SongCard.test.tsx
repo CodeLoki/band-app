@@ -218,28 +218,6 @@ describe('SongCard for Mixer user', () => {
     });
 });
 
-describe('SongCard for Vocals user', () => {
-    beforeEach(() => {
-        mockContext.user = User.Vocals;
-        mockContext.isMe = false;
-        mockContext.mode = ActionMode.Perform;
-    });
-
-    afterEach(() => {
-        cleanup();
-    });
-
-    it('opens Genius lyrics for Vocals user', () => {
-        const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
-        const song = createMockSong();
-        render(<SongCard song={song as never} />);
-
-        fireEvent.click(screen.getByRole('button'));
-        expect(windowOpenSpy).toHaveBeenCalledWith(expect.stringContaining('genius.com'));
-        windowOpenSpy.mockRestore();
-    });
-});
-
 describe('SongCard for Guitars user', () => {
     beforeEach(() => {
         mockContext.user = User.Guitars;

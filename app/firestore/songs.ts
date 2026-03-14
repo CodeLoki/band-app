@@ -37,6 +37,8 @@ export type Song = {
     drumeo: string;
     /** Embedded youtube url. */
     ytMusic: string;
+    /** LRCLIB lyrics ID. */
+    lrclibId: string;
     /** Drummer notes for this song. */
     notes: string;
     /** Auxiliary drum pad used in this song. */

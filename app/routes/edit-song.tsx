@@ -98,6 +98,7 @@ export default function EditSong() {
             solos: songData.solos || [],
             groove: songData.groove || '',
             ytMusic: songData.ytMusic || '',
+            lrclibId: songData.lrclibId || '',
             notes: songData.notes || '',
             pad: songData.pad || DrumPad.None,
             practice: songData.practice || false,
@@ -121,6 +122,7 @@ export default function EditSong() {
                 solos: formData.getAll('solos').map((s) => parseInt(s as string, 10) as Instrument),
                 groove: formData.get('groove') as string,
                 ytMusic: formData.get('ytMusic') as string,
+                lrclibId: formData.get('lrclibId') as string,
                 notes: formData.get('notes') as string,
                 pad: parseInt(formData.get('pad') as string, 10) as DrumPad,
                 practice: !!formData.get('practice'),
@@ -210,6 +212,8 @@ export default function EditSong() {
                     <TextArea label="GrooveScribe" name="groove" defaultValue={initialData.groove} />
 
                     <TextInput label="YT Music" name="ytMusic" defaultValue={initialData.ytMusic} />
+
+                    <TextInput label="Lyrics ID" name="lrclibId" defaultValue={initialData.lrclibId} />
 
                     <TextInput label="Drum Notes" name="notes" defaultValue={initialData.notes} />
 
