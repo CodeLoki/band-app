@@ -21,6 +21,8 @@ export type Song = {
     artist: string;
     /** Song title. */
     title: string;
+    /** Song album. */
+    album: string;
     /** Song length. */
     length: number;
     /** Beats per minute. */

@@ -91,6 +91,7 @@ export default function EditSong() {
         initialData: Partial<Song> = {
             title: songData.title || '',
             artist: songData.artist || '',
+            album: songData.album || '',
             length: songData.length || 0,
             bpm: songData.bpm || 0,
             startsWith: songData.startsWith || StartsWith.All,
@@ -115,6 +116,7 @@ export default function EditSong() {
             const songData = {
                 title: formData.get('title') as string,
                 artist: formData.get('artist') as string,
+                album: formData.get('album') as string,
                 length: parseInt(formData.get('length') as string, 10) || 0,
                 bpm: parseInt(formData.get('bpm') as string, 10) || 0,
                 startsWith: parseInt(formData.get('startsWith') as string, 10) as StartsWith,
@@ -183,6 +185,8 @@ export default function EditSong() {
                     <TextInput label="Title" name="title" defaultValue={initialData.title} />
 
                     <TextInput label="Artist" name="artist" defaultValue={initialData.artist} />
+
+                    <TextInput label="Album" name="album" defaultValue={initialData.album} />
 
                     <TextInput label="Length" name="length" defaultValue={initialData.length} type="number" />
 

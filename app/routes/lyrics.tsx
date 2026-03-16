@@ -26,8 +26,23 @@ interface LyricsLoaderData extends AppData {
     songId: string;
     song?: DocumentSnapshot<Song>;
     lyrics: LyricsPayload | null;
+    lyricsError?: string;
     gigId: string | null;
     gigSongIds: string[];
+}
+
+function getLyricsURL({ lrclibId, artist, title, album, length }: Song): string {
+    const base = 'https://lrclib.net/api/get';
+
+    if (lrclibId) {
+        return `${base}/${lrclibId}`;
+    }
+
+    if (album) {
+        return `${base}?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}&album_name=${encodeURIComponent(album)}&duration=${length}`;
+    }
+
+    return '';
 }
 
 export async function clientLoader({
@@ -62,15 +77,24 @@ export async function clientLoader({
         gigSongIds = [...gigData.one, ...gigData.two, ...gigData.pocket].map((ref) => ref.id);
     }
 
-    const songData = song.data(),
-        id = songData.lrclibId;
+    let lyrics: LyricsPayload | null = null,
+        lyricsError: string | undefined;
 
-    let lyrics: LyricsPayload | null = null;
-    if (id) {
-        // const apiUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(songData.artist)}&track_name=${encodeURIComponent(songData.title)}&album_name=${encodeURIComponent('Bella Donna')}&duration=${songData.length}`;
-        const apiUrl = `https://lrclib.net/api/get/${id}`,
-            data = await fetch(apiUrl.toLowerCase());
-        lyrics = await data.json();
+    try {
+        const url = getLyricsURL(song.data()!);
+        if (!url) {
+            throw new Error('Insufficient data to construct LRCLIB API URL.');
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`LRCLIB API error: ${response.status}`);
+        }
+
+        lyrics = (await response.json()) as LyricsPayload;
+    } catch (error) {
+        lyrics = null;
+        lyricsError = error instanceof Error ? error.message : 'Unknown error loading lyrics';
     }
 
     return {
@@ -78,6 +102,7 @@ export async function clientLoader({
         songId,
         song,
         lyrics,
+        lyricsError,
         gigId,
         gigSongIds
     };
@@ -303,13 +328,14 @@ function LyricsDisplay({ plainLyrics, syncedLyrics, duration, isPlaying, onPlayb
 
 function ToolbarButton({
     children,
+    tip,
     ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
     tip: string;
 }) {
     return (
         <li>
-            <button type="button" className="btn btn-ghost" {...props}>
+            <button type="button" className="btn btn-ghost tooltip" data-tip={tip} aria-label={tip} {...props}>
                 {children}
             </button>
         </li>
@@ -317,7 +343,7 @@ function ToolbarButton({
 }
 
 export default function LyricsRoute() {
-    const { band, song, songId, lyrics, gigId, gigSongIds } = useLoaderData<LyricsLoaderData>(),
+    const { band, song, songId, lyrics, lyricsError, gigId, gigSongIds } = useLoaderData<LyricsLoaderData>(),
         { navigateWithParams } = useNavigation(),
         songData = song!.data()!,
         [isPlaying, setIsPlaying] = useState(false),
@@ -351,7 +377,7 @@ export default function LyricsRoute() {
                     />
                 ) : (
                     <div className="flex-1 flex items-center justify-center text-base-content/50">
-                        <p>Lyrics not available for this song.</p>
+                        <p>{lyricsError || 'Lyrics not available for this song.'}</p>
                     </div>
                 )}
             </div>
@@ -366,19 +392,20 @@ export default function LyricsRoute() {
                         <LuChevronLeft />
                     </ToolbarButton>
                 )}
-                <ToolbarButton
-                    tip={isPlaying ? 'Stop' : 'Play'}
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    disabled={!lyrics}
-                >
-                    {isPlaying ? <LuSquare /> : <LuPlay />}
-                </ToolbarButton>
+                {lyricsError ? null : (
+                    <ToolbarButton
+                        tip={isPlaying ? 'Stop' : 'Play'}
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        disabled={!lyrics}
+                    >
+                        {isPlaying ? <LuSquare /> : <LuPlay />}
+                    </ToolbarButton>
+                )}
                 {gigId && (
                     <ToolbarButton tip="Next" onClick={() => nextSongId && goToSong(nextSongId)} disabled={!nextSongId}>
                         <LuChevronRight />
                     </ToolbarButton>
                 )}
-                <div className="divider divider-horizontal"></div>
                 <ToolbarButton tip="Exit" onClick={() => navigateWithParams(gigId ? `/gig/${gigId}` : '/songs')}>
                     <LuLogOut />
                 </ToolbarButton>

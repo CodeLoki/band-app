@@ -1,7 +1,7 @@
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
 import type React from 'react';
 import { useCallback } from 'react';
-import { LuAudioLines, LuHouse, LuLogIn } from 'react-icons/lu';
+import { LuAudioLines, LuDatabaseZap, LuHouse } from 'react-icons/lu';
 import { href, Outlet, ScrollRestoration, useLoaderData, useLocation, useNavigate, useNavigation } from 'react-router';
 import Loading from '@/components/Loading';
 import NavBarLink from '@/components/NavBarLink';
@@ -79,7 +79,7 @@ function LoginButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
             title="Login"
             {...props}
         >
-            <LuLogIn className="size-4" />
+            <LuDatabaseZap className="size-4" />
             <span className="sr-only">Login</span>
         </button>
     );

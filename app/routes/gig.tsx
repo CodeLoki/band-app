@@ -115,7 +115,7 @@ function SetList({
                 </div>
                 <div className="space-y-4 sm:flex-1">
                     {secondColumn.map((song) => (
-                        <SongCard song={song} key={song.id} />
+                        <SongCard song={song} gigId={gigId} key={song.id} />
                     ))}
                 </div>
             </div>
