@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { type MouseEvent, useCallback } from 'react';
-import { LuCommand, LuLogOut, LuRotateCcw, LuSave, LuSquareX, LuTrash2 } from 'react-icons/lu';
+import { LuCommand, LuRotateCcw, LuSave, LuSquareX, LuTrash2, LuX } from 'react-icons/lu';
 
 interface CommandPanelProps {
     /**
@@ -30,7 +30,7 @@ export default function CommandPanel({ handleSave, handleDelete, handleReset }: 
             e.currentTarget.blur();
             onClick();
         }, []),
-        buttons = [{ text: 'Cancel', icon: <LuLogOut />, color: 'btn-neutral', onClick: goBack }],
+        buttons = [{ text: 'Cancel', icon: <LuX />, color: 'btn-neutral', onClick: goBack }],
         cssCommon = 'btn btn-lg btn-circle';
 
     if (handleReset) {

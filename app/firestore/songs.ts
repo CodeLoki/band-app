@@ -22,7 +22,7 @@ export type Song = {
     /** Song title. */
     title: string;
     /** Song album. */
-    album: string;
+    album?: string;
     /** Song length. */
     length: number;
     /** Beats per minute. */
@@ -40,7 +40,7 @@ export type Song = {
     /** Embedded youtube url. */
     ytMusic: string;
     /** LRCLIB lyrics ID. */
-    lrclibId: string;
+    lrclibId?: string;
     /** Drummer notes for this song. */
     notes: string;
     /** Auxiliary drum pad used in this song. */

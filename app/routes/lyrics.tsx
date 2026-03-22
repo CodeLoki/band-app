@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { type DocumentSnapshot, doc, getDoc } from 'firebase/firestore';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { LuChevronLeft, LuChevronRight, LuLink, LuLogOut, LuPlay, LuSquare } from 'react-icons/lu';
+import { LuChevronLeft, LuChevronRight, LuLink, LuPause, LuPlay, LuX } from 'react-icons/lu';
 import { useLoaderData } from 'react-router';
 import { db } from '@/config/firebase';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -116,12 +116,12 @@ interface LyricsDisplayProps {
     onPlaybackEnd: () => void;
 }
 
-interface ParsedLyricLine {
+export interface ParsedLyricLine {
     timeMs: number;
     text: string;
 }
 
-function parseSyncedLyrics(syncedLyrics: string): ParsedLyricLine[] {
+export function parseSyncedLyrics(syncedLyrics: string): ParsedLyricLine[] {
     const lines = syncedLyrics.split('\n');
     return lines
         .map((line) => {
@@ -205,6 +205,7 @@ function PlainLyricsDisplay({ plainLyrics, duration, isPlaying, onPlaybackEnd }:
     return (
         <div
             ref={lyricsRef}
+            aria-hidden="true"
             className="whitespace-pre-line text-[clamp(1rem,4vw,2.5rem)] flex-1 min-h-0 overflow-y-auto"
         >
             {plainLyrics}
@@ -286,7 +287,11 @@ function SyncedLyricsDisplay({ lines, duration, isPlaying, onPlaybackEnd }: Sync
     }, [isPlaying, duration, lines, onPlaybackEnd]);
 
     return (
-        <div ref={containerRef} className="text-[clamp(1rem,4vw,2.5rem)] flex-1 min-h-0 overflow-y-auto">
+        <div
+            ref={containerRef}
+            aria-hidden="true"
+            className="text-[clamp(1rem,4vw,2.5rem)] flex-1 min-h-0 overflow-y-auto"
+        >
             {lines.map((line, index) => (
                 <div
                     key={`${line.timeMs}-${index}`}
@@ -352,6 +357,10 @@ export default function LyricsRoute() {
         prevSongId = currentIndex > 0 ? gigSongIds[currentIndex - 1] : null,
         nextSongId = currentIndex < gigSongIds.length - 1 ? gigSongIds[currentIndex + 1] : null;
 
+    // Reset playback state when the song changes
+    // biome-ignore lint/correctness/useExhaustiveDependencies: intentional reset on song change
+    useEffect(() => setIsPlaying(false), [songId]);
+
     const goToSong = useCallback(
         (targetSongId: string) => {
             navigateWithParams(`/gig/${gigId}/lyrics/${targetSongId}`);
@@ -369,6 +378,7 @@ export default function LyricsRoute() {
                 </h2>
                 {lyrics ? (
                     <LyricsDisplay
+                        key={songId}
                         plainLyrics={lyrics.plainLyrics}
                         syncedLyrics={lyrics.syncedLyrics}
                         duration={lyrics.duration}
@@ -394,11 +404,11 @@ export default function LyricsRoute() {
                 )}
                 {lyricsError ? null : (
                     <ToolbarButton
-                        tip={isPlaying ? 'Stop' : 'Play'}
+                        tip={isPlaying ? 'Pause' : 'Play'}
                         onClick={() => setIsPlaying(!isPlaying)}
                         disabled={!lyrics}
                     >
-                        {isPlaying ? <LuSquare /> : <LuPlay />}
+                        {isPlaying ? <LuPause /> : <LuPlay />}
                     </ToolbarButton>
                 )}
                 {gigId && (
@@ -407,7 +417,7 @@ export default function LyricsRoute() {
                     </ToolbarButton>
                 )}
                 <ToolbarButton tip="Exit" onClick={() => navigateWithParams(gigId ? `/gig/${gigId}` : '/songs')}>
-                    <LuLogOut />
+                    <LuX />
                 </ToolbarButton>
             </ul>
         </>

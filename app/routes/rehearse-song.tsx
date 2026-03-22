@@ -1,5 +1,5 @@
 import { doc, getDoc } from 'firebase/firestore';
-import { LuLogOut } from 'react-icons/lu';
+import { LuX } from 'react-icons/lu';
 import { useLoaderData } from 'react-router';
 import { db } from '@/config/firebase';
 import { type Song, songConverter } from '@/firestore/songs';
@@ -53,7 +53,7 @@ export default function RehearseSong() {
                     onClick={() => window.history.back()}
                     data-testid="rehearse-back-button"
                 >
-                    <LuLogOut />
+                    <LuX />
                 </button>
 
                 {song.ytMusic ? (
