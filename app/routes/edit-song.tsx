@@ -91,6 +91,7 @@ export default function EditSong() {
         initialData: Partial<Song> = {
             title: songData.title || '',
             artist: songData.artist || '',
+            album: songData.album || '',
             length: songData.length || 0,
             bpm: songData.bpm || 0,
             startsWith: songData.startsWith || StartsWith.All,
@@ -98,6 +99,7 @@ export default function EditSong() {
             solos: songData.solos || [],
             groove: songData.groove || '',
             ytMusic: songData.ytMusic || '',
+            lrclibId: songData.lrclibId || '',
             notes: songData.notes || '',
             pad: songData.pad || DrumPad.None,
             practice: songData.practice || false,
@@ -114,6 +116,7 @@ export default function EditSong() {
             const songData = {
                 title: formData.get('title') as string,
                 artist: formData.get('artist') as string,
+                album: formData.get('album') as string,
                 length: parseInt(formData.get('length') as string, 10) || 0,
                 bpm: parseInt(formData.get('bpm') as string, 10) || 0,
                 startsWith: parseInt(formData.get('startsWith') as string, 10) as StartsWith,
@@ -121,6 +124,7 @@ export default function EditSong() {
                 solos: formData.getAll('solos').map((s) => parseInt(s as string, 10) as Instrument),
                 groove: formData.get('groove') as string,
                 ytMusic: formData.get('ytMusic') as string,
+                lrclibId: formData.get('lrclibId') as string,
                 notes: formData.get('notes') as string,
                 pad: parseInt(formData.get('pad') as string, 10) as DrumPad,
                 practice: !!formData.get('practice'),
@@ -182,6 +186,8 @@ export default function EditSong() {
 
                     <TextInput label="Artist" name="artist" defaultValue={initialData.artist} />
 
+                    <TextInput label="Album" name="album" defaultValue={initialData.album} />
+
                     <TextInput label="Length" name="length" defaultValue={initialData.length} type="number" />
 
                     <TextInput label="BPM" name="bpm" defaultValue={initialData.bpm} type="number" />
@@ -210,6 +216,8 @@ export default function EditSong() {
                     <TextArea label="GrooveScribe" name="groove" defaultValue={initialData.groove} />
 
                     <TextInput label="YT Music" name="ytMusic" defaultValue={initialData.ytMusic} />
+
+                    <TextInput label="Lyrics ID" name="lrclibId" defaultValue={initialData.lrclibId} />
 
                     <TextInput label="Drum Notes" name="notes" defaultValue={initialData.notes} />
 

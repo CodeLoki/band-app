@@ -31,6 +31,13 @@ const router = createBrowserRouter([
                 }
             },
             {
+                path: 'gig/:gigId/lyrics/:songId',
+                lazy: async () => {
+                    const { default: Component, clientLoader } = await import('./routes/lyrics');
+                    return { Component, loader: clientLoader };
+                }
+            },
+            {
                 path: 'rehearse/:songId',
                 lazy: async () => {
                     const { default: Component, clientLoader } = await import('./routes/rehearse-song');

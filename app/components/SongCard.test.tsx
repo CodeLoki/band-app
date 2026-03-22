@@ -222,21 +222,29 @@ describe('SongCard for Vocals user', () => {
     beforeEach(() => {
         mockContext.user = User.Vocals;
         mockContext.isMe = false;
+        mockContext.canEdit = false;
         mockContext.mode = ActionMode.Perform;
+        mockNavigateWithParams.mockClear();
     });
 
     afterEach(() => {
         cleanup();
     });
 
-    it('opens Genius lyrics for Vocals user', () => {
-        const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    it('navigates to lyrics page with gigId when provided', () => {
+        const song = createMockSong();
+        render(<SongCard song={song as never} gigId="gig-123" />);
+
+        fireEvent.click(screen.getByRole('button'));
+        expect(mockNavigateWithParams).toHaveBeenCalledWith('/gig/gig-123/lyrics/song-1');
+    });
+
+    it('navigates to lyrics page with all-songs when no gigId', () => {
         const song = createMockSong();
         render(<SongCard song={song as never} />);
 
         fireEvent.click(screen.getByRole('button'));
-        expect(windowOpenSpy).toHaveBeenCalledWith(expect.stringContaining('genius.com'));
-        windowOpenSpy.mockRestore();
+        expect(mockNavigateWithParams).toHaveBeenCalledWith('/gig/all-songs/lyrics/song-1');
     });
 });
 

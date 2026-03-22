@@ -33,3 +33,5 @@ jobs:
 
       - name: Run tests
         run: pnpm test:run
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}

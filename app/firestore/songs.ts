@@ -21,6 +21,8 @@ export type Song = {
     artist: string;
     /** Song title. */
     title: string;
+    /** Song album. */
+    album?: string;
     /** Song length. */
     length: number;
     /** Beats per minute. */
@@ -37,6 +39,8 @@ export type Song = {
     drumeo: string;
     /** Embedded youtube url. */
     ytMusic: string;
+    /** LRCLIB lyrics ID. */
+    lrclibId?: string;
     /** Drummer notes for this song. */
     notes: string;
     /** Auxiliary drum pad used in this song. */

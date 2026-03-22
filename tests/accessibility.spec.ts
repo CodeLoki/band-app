@@ -83,4 +83,24 @@ test.describe('Accessibility', () => {
 
         expect(results.violations).toEqual([]);
     });
+
+    test('lyrics page has no accessibility violations', async ({ page }) => {
+        // Navigate to songs page to find a song ID
+        await page.goto('/songs?u=vocals');
+
+        const songCard = page.locator('button[data-song-card-id]').first();
+        await expect(songCard).toBeVisible({ timeout: 10000 });
+
+        // Get the song ID and navigate to lyrics page
+        const songId = await songCard.getAttribute('data-song-card-id');
+        await page.goto(`/gig/all-songs/lyrics/${songId}?u=vocals`);
+
+        // Wait for lyrics content to load (either lyrics text or error message)
+        const lyricsContent = page.locator('h2');
+        await expect(lyricsContent).toBeVisible({ timeout: 10000 });
+
+        const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+
+        expect(results.violations).toEqual([]);
+    });
 });
