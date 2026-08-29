@@ -39,7 +39,9 @@ vi.mock('@/contexts/ActionContext', () => ({
         bpmSongId: mockContext.bpmSongId,
         setBpmSongId: (songId: string | null) => {
             mockContext.bpmSongId = songId;
-            bpmListeners.forEach((listener) => listener());
+            bpmListeners.forEach((listener) => {
+                listener();
+            });
         }
     })
 }));
