@@ -148,10 +148,10 @@ function IndicatorBadge({ title, icon: Icon, className = 'bg-accent text-accent-
  */
 export default function SongCard({ song, gigId }: SongCardProps) {
     const { user, isMe, canEdit } = useFirestore(),
-        { mode } = useActionContext(),
+        { mode, bpmSongId, setBpmSongId } = useActionContext(),
         { navigateWithParams } = useNavigation(),
         [songData, setSongData] = useState<Song | undefined>(song.data()),
-        [isBPMActive, setBPMActive] = useState(false);
+        isBPMActive = mode === ActionMode.BPM && bpmSongId === song.id;
 
     if (!songData) {
         throw new Error(`Song data not found: "${song.id}"`);
@@ -184,7 +184,7 @@ export default function SongCard({ song, gigId }: SongCardProps) {
         }
 
         if (mode === ActionMode.BPM) {
-            setBPMActive((prev) => !prev);
+            setBpmSongId(bpmSongId === song.id ? null : song.id);
             return;
         }
 
