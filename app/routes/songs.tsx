@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { collection, getDocs, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { useEffect } from 'react';
-import { LuCirclePlus } from 'react-icons/lu';
+import { LuAudioLines, LuCirclePlus } from 'react-icons/lu';
 import { useLoaderData, useSearchParams } from 'react-router';
 import ActionSelector from '@/components/ActionSelector';
 import NavBarLink from '@/components/NavBarLink';
@@ -45,12 +45,20 @@ export default function SongsIndex() {
         filter = (searchParams.get('filter') as FilterOption) ?? FilterOption.All;
 
     useEffect(() => {
-        if (canEdit) {
-            setNavbarContent(<NavBarLink icon={<LuCirclePlus />} text="Add" to="/edit-song/new" />);
+        if (isMe) {
+            setNavbarContent(
+                <div className="flex gap-1">
+                    <NavBarLink icon={<LuAudioLines />} text="Incomplete" to="/songs/missing-data" />
+                    {canEdit ? <NavBarLink icon={<LuCirclePlus />} text="Add" to="/edit-song/new" /> : null}
+                </div>
+            );
+            return () => setNavbarContent(null);
         }
 
+        setNavbarContent(null);
+
         return () => setNavbarContent(null);
-    }, [setNavbarContent, canEdit]);
+    }, [setNavbarContent, canEdit, isMe]);
 
     const filteredSongs = allSongs.filter((s) => {
             const bands = s.data().bands;

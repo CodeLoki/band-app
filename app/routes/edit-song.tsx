@@ -1,5 +1,5 @@
 import { addDoc, collection, type DocumentSnapshot, deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { useCallback, useRef } from 'react';
+import { type FormEvent, type SyntheticEvent, useCallback, useRef } from 'react';
 import { LuCircleX, LuTrash2 } from 'react-icons/lu';
 import { Form, useLoaderData } from 'react-router';
 import CommandPanel from '@/components/CommandPanel';
@@ -106,56 +106,60 @@ export default function EditSong() {
             bands: songData.bands || [band]
         };
 
-    const handleSave = useCallback(async () => {
-        if (!formRef.current) return;
+    const handleSubmit = useCallback(
+        async (e: FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
 
-        try {
-            const formData = new FormData(formRef.current);
+            try {
+                const formData = new FormData(e.currentTarget);
 
-            // Convert FormData to a regular object for easier handling
-            const songData = {
-                title: formData.get('title') as string,
-                artist: formData.get('artist') as string,
-                album: formData.get('album') as string,
-                length: parseInt(formData.get('length') as string, 10) || 0,
-                bpm: parseInt(formData.get('bpm') as string, 10) || 0,
-                startsWith: parseInt(formData.get('startsWith') as string, 10) as StartsWith,
-                features: parseInt(formData.get('features') as string, 10) as Instrument,
-                solos: formData.getAll('solos').map((s) => parseInt(s as string, 10) as Instrument),
-                groove: formData.get('groove') as string,
-                ytMusic: formData.get('ytMusic') as string,
-                lrclibId: formData.get('lrclibId') as string,
-                notes: formData.get('notes') as string,
-                pad: parseInt(formData.get('pad') as string, 10) as DrumPad,
-                practice: !!formData.get('practice'),
-                bands: formData
-                    .getAll('bands')
-                    .map((id) => bands.find((b) => b.id === id)?.ref)
-                    .filter((ref) => !!ref)
-            };
+                // Convert FormData to a regular object for easier handling
+                const songData = {
+                    title: formData.get('title') as string,
+                    artist: formData.get('artist') as string,
+                    album: formData.get('album') as string,
+                    length: parseInt(formData.get('length') as string, 10) || 0,
+                    bpm: parseInt(formData.get('bpm') as string, 10) || 0,
+                    startsWith: parseInt(formData.get('startsWith') as string, 10) as StartsWith,
+                    features: parseInt(formData.get('features') as string, 10) as Instrument,
+                    solos: formData.getAll('solos').map((s) => parseInt(s as string, 10) as Instrument),
+                    groove: formData.get('groove') as string,
+                    ytMusic: formData.get('ytMusic') as string,
+                    lrclibId: formData.get('lrclibId') as string,
+                    notes: formData.get('notes') as string,
+                    pad: parseInt(formData.get('pad') as string, 10) as DrumPad,
+                    practice: !!formData.get('practice'),
+                    bands: formData
+                        .getAll('bands')
+                        .map((id) => bands.find((b) => b.id === id)?.ref)
+                        .filter((ref) => !!ref)
+                };
 
-            if (song) {
-                await updateDoc(song.ref, songData);
-                showSuccess(`Song ${songData.title} saved.`);
-            } else {
-                await addDoc(collection(db, 'songs'), songData);
-                showSuccess(`Song ${songData.title} created.`);
+                if (song) {
+                    await updateDoc(song.ref, songData);
+                    showSuccess(`Song ${songData.title} saved.`);
+                } else {
+                    await addDoc(collection(db, 'songs'), songData);
+                    showSuccess(`Song ${songData.title} created.`);
+                }
+
+                goBack();
+            } catch (ex) {
+                showError('DB operation failed.', {
+                    details: ex instanceof Error ? ex.message : String(ex)
+                });
             }
-
-            goBack();
-        } catch (ex) {
-            showError('DB operation failed.', {
-                details: ex instanceof Error ? ex.message : String(ex)
-            });
-        }
-    }, [song, bands, showSuccess, showError, goBack]);
+        },
+        [song, bands, showSuccess, showError, goBack]
+    );
 
     const handleDelete = useCallback(() => {
         deleteModalRef.current?.showModal();
     }, []);
 
-    const resetEditState = useCallback(() => {
-        formRef.current?.reset();
+    const resetEditState = useCallback((e: SyntheticEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        e.currentTarget.reset();
     }, []);
 
     const performDelete = useCallback(async () => {
@@ -181,7 +185,7 @@ export default function EditSong() {
         <>
             <title>{pageTitle}</title>
             <EditCard>
-                <Form ref={formRef} className="space-y-4">
+                <Form ref={formRef} className="space-y-4" onSubmit={handleSubmit} onReset={resetEditState}>
                     <TextInput label="Title" name="title" defaultValue={initialData.title} />
 
                     <TextInput label="Artist" name="artist" defaultValue={initialData.artist} />
@@ -251,6 +255,8 @@ export default function EditSong() {
                         />
                         Flag for practice
                     </label>
+
+                    <CommandPanel handleDelete={songId !== 'new' ? handleDelete : undefined} showReset />
                 </Form>
             </EditCard>
             <dialog ref={deleteModalRef} className="modal">
@@ -276,12 +282,6 @@ export default function EditSong() {
                     </div>
                 </div>
             </dialog>
-
-            <CommandPanel
-                handleSave={handleSave}
-                handleDelete={songId !== 'new' ? handleDelete : undefined}
-                handleReset={resetEditState}
-            />
         </>
     );
 }

@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { useEffect, useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActionMode } from '@/contexts/ActionContext';
 import { DrumPad, Instrument, StartsWith, User } from '@/firestore/songs';
@@ -8,8 +9,11 @@ const mockContext = {
     user: User.Me,
     isMe: true,
     canEdit: true,
-    mode: ActionMode.Perform
+    mode: ActionMode.Perform,
+    bpmSongId: null as string | null
 };
+
+const bpmListeners = new Set<() => void>();
 
 const mockNavigateWithParams = vi.fn();
 
@@ -27,10 +31,18 @@ vi.mock('@/contexts/ActionContext', () => ({
         Practice: 'practice',
         Rehearse: 'rehearse',
         Edit: 'edit',
-        Flag: 'flag'
+        Flag: 'flag',
+        BPM: 'bpm'
     },
     useActionContext: () => ({
-        mode: mockContext.mode
+        mode: mockContext.mode,
+        bpmSongId: mockContext.bpmSongId,
+        setBpmSongId: (songId: string | null) => {
+            mockContext.bpmSongId = songId;
+            bpmListeners.forEach((listener) => {
+                listener();
+            });
+        }
     })
 }));
 
@@ -52,6 +64,7 @@ function createMockSong(overrides = {}) {
     const songData = {
         title: 'Test Song',
         artist: 'Test Artist',
+        bpm: 120,
         startsWith: StartsWith.Bass,
         pad: DrumPad.None,
         notes: '',
@@ -63,10 +76,12 @@ function createMockSong(overrides = {}) {
         ...overrides
     };
 
+    const id = (overrides as { id?: string }).id ?? 'song-1';
+
     return {
-        id: 'song-1',
+        id,
         data: () => songData,
-        ref: { id: 'song-1' }
+        ref: { id }
     };
 }
 
@@ -76,6 +91,8 @@ describe('SongCard', () => {
         mockContext.isMe = true;
         mockContext.canEdit = true;
         mockContext.mode = ActionMode.Perform;
+        mockContext.bpmSongId = null;
+        bpmListeners.clear();
         mockNavigateWithParams.mockClear();
     });
 
@@ -156,6 +173,43 @@ describe('SongCard', () => {
         fireEvent.click(screen.getByRole('button'));
         expect(windowOpenSpy).toHaveBeenCalledWith(expect.stringContaining('songsterr.com'));
         windowOpenSpy.mockRestore();
+    });
+
+    it('only shows one BPM indicator at a time', () => {
+        mockContext.mode = ActionMode.BPM;
+        const firstSong = createMockSong({ title: 'First Song', bpm: 120, id: 'song-1' });
+        const secondSong = createMockSong({ title: 'Second Song', bpm: 90, id: 'song-2' });
+
+        function BpmHarness() {
+            const [, forceRender] = useState(0);
+
+            useEffect(() => {
+                const listener = () => forceRender((value: number) => value + 1);
+                bpmListeners.add(listener);
+
+                return () => {
+                    bpmListeners.delete(listener);
+                };
+            }, []);
+
+            return (
+                <>
+                    <SongCard song={firstSong as never} />
+                    <SongCard song={secondSong as never} />
+                </>
+            );
+        }
+
+        render(<BpmHarness />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'First Song by Test Artist' }));
+        expect(screen.getByTitle('120 BPM')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Second Song by Test Artist' }));
+
+        expect(screen.queryByTitle('120 BPM')).not.toBeInTheDocument();
+        expect(screen.getByTitle('90 BPM')).toBeInTheDocument();
+        expect(mockContext.bpmSongId).toBe('song-2');
     });
 
     it('displays startsWith badge', () => {

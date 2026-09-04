@@ -24,6 +24,13 @@ const router = createBrowserRouter([
                 }
             },
             {
+                path: 'songs/missing-data',
+                lazy: async () => {
+                    const { default: Component, clientLoader } = await import('./routes/songs-missing-data');
+                    return { Component, loader: clientLoader };
+                }
+            },
+            {
                 path: 'edit-song/:songId',
                 lazy: async () => {
                     const { default: Component, clientLoader } = await import('./routes/edit-song');

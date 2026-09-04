@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import type { FormEvent } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import CommandPanel from './CommandPanel';
 
@@ -8,87 +9,85 @@ describe('CommandPanel', () => {
     });
 
     it('renders Save and Cancel buttons by default', () => {
-        render(<CommandPanel handleSave={vi.fn()} />);
+        render(<CommandPanel />);
 
-        expect(screen.getByText('Save')).toBeInTheDocument();
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
-        expect(screen.queryByText('Delete')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
     });
 
     it('renders Delete button when handleDelete is provided', () => {
-        render(<CommandPanel handleSave={vi.fn()} handleDelete={vi.fn()} />);
+        render(<CommandPanel handleDelete={vi.fn()} />);
 
-        expect(screen.getByText('Save')).toBeInTheDocument();
-        expect(screen.getByText('Delete')).toBeInTheDocument();
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
     });
 
-    it('calls handleSave when Save button is clicked', () => {
-        const handleSave = vi.fn();
-        render(<CommandPanel handleSave={handleSave} />);
+    it('submits the parent form when Save button is clicked', () => {
+        const handleSubmit = vi.fn((e: FormEvent<HTMLFormElement>) => e.preventDefault());
+        render(
+            <form onSubmit={handleSubmit}>
+                <CommandPanel />
+            </form>
+        );
 
-        // Find the button within the div that contains "Save" text
-        const saveDiv = screen.getByText('Save').closest('div');
-        const saveButton = saveDiv?.querySelector('button');
-        expect(saveButton).not.toBeNull();
-        fireEvent.click(saveButton as HTMLButtonElement);
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-        expect(handleSave).toHaveBeenCalledTimes(1);
+        expect(handleSubmit).toHaveBeenCalledTimes(1);
     });
 
     it('calls handleDelete when Delete button is clicked', () => {
         const handleDelete = vi.fn();
-        render(<CommandPanel handleSave={vi.fn()} handleDelete={handleDelete} />);
+        render(<CommandPanel handleDelete={handleDelete} />);
 
-        const deleteDiv = screen.getByText('Delete').closest('div');
-        const deleteButton = deleteDiv?.querySelector('button');
-        expect(deleteButton).not.toBeNull();
-        fireEvent.click(deleteButton as HTMLButtonElement);
+        fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
 
         expect(handleDelete).toHaveBeenCalledTimes(1);
     });
 
     it('calls window.history.back when Cancel button is clicked', () => {
         const historyBackSpy = vi.spyOn(window.history, 'back').mockImplementation(() => {});
-        render(<CommandPanel handleSave={vi.fn()} />);
+        render(<CommandPanel />);
 
-        const cancelDiv = screen.getByText('Cancel').closest('div');
-        const cancelButton = cancelDiv?.querySelector('button');
-        expect(cancelButton).not.toBeNull();
-        fireEvent.click(cancelButton as HTMLButtonElement);
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
 
         expect(historyBackSpy).toHaveBeenCalledTimes(1);
         historyBackSpy.mockRestore();
     });
 
     it('renders icon buttons with correct classes', () => {
-        render(<CommandPanel handleSave={vi.fn()} handleDelete={vi.fn()} />);
+        render(<CommandPanel handleDelete={vi.fn()} />);
 
-        const saveDiv = screen.getByText('Save').closest('div');
-        const deleteDiv = screen.getByText('Delete').closest('div');
-        const cancelDiv = screen.getByText('Cancel').closest('div');
-
-        const saveButton = saveDiv?.querySelector('button');
-        const deleteButton = deleteDiv?.querySelector('button');
-        const cancelButton = cancelDiv?.querySelector('button');
+        const saveButton = screen.getByRole('button', { name: 'Save' });
+        const deleteButton = screen.getByRole('button', { name: 'Delete' });
+        const cancelButton = screen.getByRole('button', { name: 'Cancel' });
 
         expect(saveButton).toHaveClass('btn-primary');
         expect(deleteButton).toHaveClass('btn-error');
-        expect(cancelButton).toHaveClass('btn-neutral');
+        expect(cancelButton).toHaveClass('btn-accent');
     });
 
-    it('blurs the main action button when clicked', () => {
-        render(<CommandPanel handleSave={vi.fn()} />);
+    it('blurs an action button when clicked', () => {
+        render(<CommandPanel />);
 
-        const mainActionButton = document.querySelector('.fab-main-action') as HTMLButtonElement;
-        expect(mainActionButton).toBeInTheDocument();
+        const cancelButton = screen.getByRole('button', { name: 'Cancel' });
 
         // Focus the button first
-        mainActionButton.focus();
-        expect(document.activeElement).toBe(mainActionButton);
+        cancelButton.focus();
+        expect(document.activeElement).toBe(cancelButton);
 
         // Click should blur it
-        fireEvent.click(mainActionButton);
-        expect(document.activeElement).not.toBe(mainActionButton);
+        fireEvent.click(cancelButton);
+        expect(document.activeElement).not.toBe(cancelButton);
+    });
+
+    it('renders a footer command panel', () => {
+        render(<CommandPanel />);
+
+        const toolbar = screen.getByRole('toolbar', { name: 'Command Toolbar' });
+        expect(toolbar).toBeInTheDocument();
+        expect(screen.getByTestId('command-panel')).toBeInTheDocument();
+        expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(2);
     });
 });

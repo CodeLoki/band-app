@@ -12,7 +12,7 @@ import {
     updateDoc,
     where
 } from 'firebase/firestore';
-import { useCallback, useRef, useState } from 'react';
+import { type FormEvent, type SyntheticEvent, useCallback, useRef, useState } from 'react';
 import { LuCircleX, LuTrash2 } from 'react-icons/lu';
 import { Form, useLoaderData } from 'react-router';
 import CommandPanel from '@/components/CommandPanel';
@@ -139,12 +139,16 @@ export default function EditGigTest() {
         [songs]
     );
 
-    const resetEditState = useCallback(() => {
-        setCurrentSetOne(one ?? []);
-        setCurrentSetTwo(two ?? []);
-        setCurrentPocket(pocket ?? []);
-        formRef.current?.reset();
-    }, [one, two, pocket]);
+    const resetEditState = useCallback(
+        (e: SyntheticEvent<HTMLFormElement>) => {
+            e.preventDefault();
+            setCurrentSetOne(one ?? []);
+            setCurrentSetTwo(two ?? []);
+            setCurrentPocket(pocket ?? []);
+            e.currentTarget.reset();
+        },
+        [one, two, pocket]
+    );
 
     if (!canEdit || !isMe) {
         throw new Error('You do not have permission to edit gigs.');
@@ -165,59 +169,59 @@ export default function EditGigTest() {
         }
     }, [showSuccess, showError, gig, navigate]);
 
-    const handleSave = useCallback(() => {
-        // Get current form data when clicked
-        if (!formRef.current) {
-            return;
-        }
+    const handleSubmit = useCallback(
+        (e: FormEvent<HTMLFormElement>) => {
+            e.preventDefault();
 
-        try {
-            const formData = new FormData(formRef.current),
-                fnGetSongsRefs = (songIds: string[]): DocumentReference<Song>[] => {
-                    return songIds
-                        .map((id) => songs.find((song) => song.id === id))
-                        .filter((s) => !!s)
-                        .map((s) => s?.ref);
-                },
-                // Parse date as local time (not UTC)
-                dateStr = formData.get('date') as string,
-                [year, month, day] = dateStr.split('-').map(Number),
-                gigData: Omit<Gig, 'id'> = {
-                    band: band.ref,
-                    date: Timestamp.fromDate(new Date(year, month - 1, day)),
-                    venue: formData.get('venue') as string,
-                    one: fnGetSongsRefs(formData.getAll('setOne') as string[]),
-                    two: fnGetSongsRefs(formData.getAll('setTwo') as string[]),
-                    pocket: fnGetSongsRefs(formData.getAll('pocket') as string[])
-                };
+            try {
+                const formData = new FormData(e.currentTarget),
+                    fnGetSongsRefs = (songIds: string[]): DocumentReference<Song>[] => {
+                        return songIds
+                            .map((id) => songs.find((song) => song.id === id))
+                            .filter((s) => !!s)
+                            .map((s) => s?.ref);
+                    },
+                    // Parse date as local time (not UTC)
+                    dateStr = formData.get('date') as string,
+                    [year, month, day] = dateStr.split('-').map(Number),
+                    gigData: Omit<Gig, 'id'> = {
+                        band: band.ref,
+                        date: Timestamp.fromDate(new Date(year, month - 1, day)),
+                        venue: formData.get('venue') as string,
+                        one: fnGetSongsRefs(formData.getAll('setOne') as string[]),
+                        two: fnGetSongsRefs(formData.getAll('setTwo') as string[]),
+                        pocket: fnGetSongsRefs(formData.getAll('pocket') as string[])
+                    };
 
-            if (gig) {
-                updateDoc(gig.ref, gigData)
-                    .then(() => {
-                        showSuccess(`Gig "${getGigTitle(gigData)}" saved.`);
-                        setTimeout(() => navigate(`/gig/${gig.id}`), 100);
-                    })
-                    .catch((ex) => {
-                        showError('DB operation failed.', {
-                            details: ex instanceof Error ? ex.message : String(ex)
+                if (gig) {
+                    updateDoc(gig.ref, gigData)
+                        .then(() => {
+                            showSuccess(`Gig "${getGigTitle(gigData)}" saved.`);
+                            setTimeout(() => navigate(`/gig/${gig.id}`), 100);
+                        })
+                        .catch((ex) => {
+                            showError('DB operation failed.', {
+                                details: ex instanceof Error ? ex.message : String(ex)
+                            });
                         });
-                    });
-            } else {
-                addDoc(collection(db, 'gigs'), gigData)
-                    .then((g) => {
-                        showSuccess(`Gig "${getGigTitle(gigData)}" created.`);
-                        setTimeout(() => navigate(`/gig/${g.id}`), 100);
-                    })
-                    .catch((ex) => {
-                        showError('DB operation failed.', {
-                            details: ex instanceof Error ? ex.message : String(ex)
+                } else {
+                    addDoc(collection(db, 'gigs'), gigData)
+                        .then((g) => {
+                            showSuccess(`Gig "${getGigTitle(gigData)}" created.`);
+                            setTimeout(() => navigate(`/gig/${g.id}`), 100);
+                        })
+                        .catch((ex) => {
+                            showError('DB operation failed.', {
+                                details: ex instanceof Error ? ex.message : String(ex)
+                            });
                         });
-                    });
+                }
+            } catch (error) {
+                console.error('Error in save:', error);
             }
-        } catch (error) {
-            console.error('Error in save:', error);
-        }
-    }, [band, gig, navigate, songs, showSuccess, showError]);
+        },
+        [band, gig, navigate, songs, showSuccess, showError]
+    );
 
     const handleDelete = useCallback(() => {
         deleteModalRef.current?.showModal();
@@ -237,7 +241,7 @@ export default function EditGigTest() {
         <>
             <title>{pageTitle}</title>
             <EditCard>
-                <Form ref={formRef} className="space-y-4">
+                <Form ref={formRef} className="space-y-4" onSubmit={handleSubmit} onReset={resetEditState}>
                     <DateInput label="Date" name="date" currentValue={gigData?.date} />
                     <TextInput label="Venue" name="venue" defaultValue={gigData?.venue ?? ''} />
 
@@ -267,6 +271,8 @@ export default function EditGigTest() {
                         labelField="title"
                         onChange={(songs) => setCurrentPocket(getSnapshotsFromSongs(songs))}
                     />
+
+                    <CommandPanel handleDelete={gigId !== 'new' ? handleDelete : undefined} showReset />
                 </Form>
             </EditCard>
             <dialog ref={deleteModalRef} className="modal">
@@ -292,12 +298,6 @@ export default function EditGigTest() {
                     </div>
                 </div>
             </dialog>
-
-            <CommandPanel
-                handleSave={handleSave}
-                handleDelete={gigId !== 'new' ? handleDelete : undefined}
-                handleReset={resetEditState}
-            />
         </>
     );
 }
