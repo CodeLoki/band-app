@@ -35,8 +35,15 @@ jobs:
 
       - name: Run tests with coverage
         run: |
+          set +e
           set -o pipefail
           pnpm test:coverage 2>&1 | tee coverage-output.txt
+          test_exit=${PIPESTATUS[0]}
+
+          # Keep only the aggregate coverage row for summaries and comments.
+          perl -pe 's/\e\[[0-9;]*[[:alpha:]]//g' coverage-output.txt > coverage-clean.txt
+          awk -F '|' '/^All files[[:space:]]+\|/ { print; found = 1; exit } END { if (!found) exit 1 }' coverage-clean.txt > coverage-summary.txt || printf '%s\n' 'Coverage summary unavailable.' > coverage-summary.txt
+          exit "$test_exit"
         env:
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
 
@@ -47,7 +54,7 @@ jobs:
             echo '## Code coverage'
             echo
             echo '```text'
-            cat coverage-output.txt
+            cat coverage-summary.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -58,7 +65,7 @@ jobs:
           script: |
             const fs = require('node:fs');
             const marker = '<!-- band-app-coverage -->';
-            const coverage = fs.readFileSync('coverage-output.txt', 'utf8');
+            const coverage = fs.readFileSync('coverage-summary.txt', 'utf8');
             const body = `${marker}
             ## Code coverage
 
