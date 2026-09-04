@@ -80,7 +80,7 @@ export function getMissingSongFields(song: Partial<Song>): MissingSongField[] {
         missingFields.push(MissingSongField.Artist);
     }
 
-    if (isMissingText(song.album)) {
+    if (isMissingText(song.album) && isMissingText(song.lrclibId)) {
         missingFields.push(MissingSongField.Album);
     }
 

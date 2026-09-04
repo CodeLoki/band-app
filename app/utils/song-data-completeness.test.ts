@@ -50,6 +50,21 @@ describe('song-data-completeness', () => {
         expect(fields).toEqual([]);
     });
 
+    it('does not require an album when a lyric ID is present', () => {
+        const fields = getMissingSongFields({
+            title: 'Song',
+            artist: 'Artist',
+            lrclibId: '12345',
+            length: 180,
+            bpm: 120,
+            startsWith: StartsWith.All,
+            groove: 'https://groovescribe.com/example',
+            ytMusic: 'abcd1234'
+        });
+
+        expect(fields).toEqual([]);
+    });
+
     it('treats zero numeric values as missing for bpm and length', () => {
         const fields = getMissingSongFields({
             title: 'Song',

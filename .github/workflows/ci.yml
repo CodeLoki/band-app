@@ -29,7 +29,20 @@ jobs:
       - name: Run lint
         run: pnpm lint
 
-      - name: Run tests
-        run: pnpm test:run
+      - name: Run tests with coverage
+        run: |
+          set -o pipefail
+          pnpm test:coverage 2>&1 | tee coverage-output.txt
         env:
           VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          {
+            echo '## Code coverage'
+            echo
+            echo '```text'
+            cat coverage-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
