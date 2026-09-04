@@ -48,7 +48,7 @@ The song card also displays role-specific information:
 
 ### Prerequisites
 
-- Node.js 22+
+- Node.js 24+
 - pnpm (recommended) or npm
 - Firebase project with Firestore enabled
 
