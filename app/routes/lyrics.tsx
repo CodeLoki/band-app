@@ -58,7 +58,7 @@ export async function clientLoader({
     }
 
     const gigId = gigIdParam === 'all-songs' ? null : (gigIdParam ?? null),
-        appData = await loadAppData(request);
+        appData = await loadAppData(request, params.bandId);
 
     // Load song and gig (if present) in parallel
     const [song, gigDoc] = await Promise.all([

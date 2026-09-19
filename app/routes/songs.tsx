@@ -26,8 +26,14 @@ enum FilterOption {
     All = 'all'
 }
 
-export async function clientLoader({ request }: { request: Request }) {
-    const { band } = await loadAppData(request),
+export async function clientLoader({
+    request,
+    params
+}: {
+    request: Request;
+    params: Record<string, string | undefined>;
+}) {
+    const { band } = await loadAppData(request, params.bandId),
         songsSnapshot = await getDocs(collection(db, 'songs').withConverter(songConverter));
 
     return {

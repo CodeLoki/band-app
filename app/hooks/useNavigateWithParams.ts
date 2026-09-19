@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { type NavigateOptions, useNavigate, useSearchParams } from 'react-router';
-import { addQueryParamsToUrl } from '@/components/NavLink';
+import { addBandPrefixToUrl, addQueryParamsToUrl } from '@/components/NavLink';
 
 /**
  * Custom hook that provides navigation functions with automatic query parameter preservation.
@@ -26,13 +26,16 @@ export function useNavigateWithParams() {
             const { preserveSearch = true, ...navigateOptions } = options || {};
 
             if (!preserveSearch) {
-                void navigate(to, navigateOptions);
+                void navigate(addBandPrefixToUrl(to, window.location.pathname), navigateOptions);
                 return;
             }
 
             // Use current searchParams instead of the captured one
             const currentSearchParams = new URLSearchParams(window.location.search);
-            const toWithParams = addQueryParamsToUrl(to, currentSearchParams);
+            const toWithParams = addQueryParamsToUrl(
+                addBandPrefixToUrl(to, window.location.pathname),
+                currentSearchParams
+            );
             void navigate(toWithParams, navigateOptions);
         },
         [navigate] // Only depend on navigate

@@ -78,6 +78,7 @@ Your application will be available at `http://localhost:5173`.
 |---------|-------------|
 | `pnpm dev` | Start development server with HMR |
 | `pnpm build` | Build for production |
+| `pnpm generate:band-pages` | Generate static band metadata pages from `public/bands.json` |
 | `pnpm preview` | Preview production build locally |
 | `pnpm start` | Serve production build |
 | `pnpm test` | Run tests in watch mode |
@@ -111,6 +112,18 @@ pnpm build
 ```
 
 The build output will be in the `dist/` directory.
+
+### Band-specific links and previews
+
+Band links use the immutable band ID as a path segment:
+
+```text
+/b/<band-id>?u=<user-role>
+```
+
+Maintain the public band list in `public/bands.json`, keep the matching SVG logos in `public/logos/<band-id>.svg`, and run `pnpm build`. The build generates `dist/b/<band-id>/index.html` with band-specific Open Graph and Twitter metadata without contacting Firebase.
+
+Adding or changing a band in Firebase requires updating the manifest, updating the static logo files when needed, and deploying a new build. Static hosting must serve the generated `dist/b/<band-id>/index.html` file when `/b/<band-id>` is requested.
 
 ## Deployment
 

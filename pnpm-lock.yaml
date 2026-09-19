@@ -14,9 +14,6 @@ importers:
       daisyui:
         specifier: ^5.7.42
         version: 5.7.42
-      dompurify:
-        specifier: ^3.4.15
-        version: 3.4.15
       firebase:
         specifier: ^12.19.0
         version: 12.19.0
@@ -3253,6 +3250,7 @@ snapshots:
   dompurify@3.4.15:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
+    optional: true
 
   eastasianwidth@0.2.0: {}
 

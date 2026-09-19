@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext } from 'react';
-import { useNavigate } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
+import { addBandPrefixToUrl } from '@/components/NavLink';
 
 interface NavigationContextType {
     navigateWithParams: (path: string) => void;
@@ -15,6 +16,7 @@ interface NavigationProviderProps {
 
 export function NavigationProvider({ children }: NavigationProviderProps) {
     const navigate = useNavigate();
+    const { pathname } = useLocation();
 
     const getCurrentParams = useCallback((): URLSearchParams => {
         return new URLSearchParams(window.location.search);
@@ -24,9 +26,10 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
         (path: string): string => {
             const currentParams = getCurrentParams();
             const searchString = currentParams.toString();
-            return `${path}${searchString ? `?${searchString}` : ''}`;
+            const bandPath = addBandPrefixToUrl(path, pathname);
+            return `${bandPath}${searchString ? `?${searchString}` : ''}`;
         },
-        [getCurrentParams]
+        [getCurrentParams, pathname]
     );
 
     const navigateWithParams = useCallback(

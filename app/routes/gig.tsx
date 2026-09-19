@@ -33,7 +33,7 @@ export async function clientLoader({
     request: Request;
     params: Record<string, string | undefined>;
 }) {
-    const { band } = await loadAppData(request);
+    const { band } = await loadAppData(request, params.bandId);
 
     const { gigId } = params;
     if (!gigId) {

@@ -2,7 +2,16 @@ import type { QueryDocumentSnapshot } from 'firebase/firestore';
 import type React from 'react';
 import { useCallback } from 'react';
 import { LuAudioLines, LuDatabaseZap, LuHouse } from 'react-icons/lu';
-import { href, Outlet, ScrollRestoration, useLoaderData, useLocation, useNavigate, useNavigation } from 'react-router';
+import {
+    href,
+    Outlet,
+    redirect,
+    ScrollRestoration,
+    useLoaderData,
+    useLocation,
+    useNavigate,
+    useNavigation
+} from 'react-router';
 import Loading from '@/components/Loading';
 import NavBarLink from '@/components/NavBarLink';
 import NavLink from '@/components/NavLink';
@@ -15,7 +24,7 @@ import { NavigationProvider } from '@/contexts/NavigationContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import type { Band } from '@/firestore/bands';
 import type { User } from '@/firestore/songs';
-import { type AppData, loadAppData } from '@/loaders/appData';
+import { type AppData, DefaultBandId, loadAppData } from '@/loaders/appData';
 
 import './tailwind.css';
 
@@ -25,8 +34,26 @@ export function HydrateFallback() {
     return <Loading debounceMs={0} fullScreen={false} />;
 }
 
-export async function clientLoader({ request }: { request: Request }) {
-    return loadAppData(request);
+export async function clientLoader({
+    request,
+    params
+}: {
+    request: Request;
+    params: Record<string, string | undefined>;
+}) {
+    const url = new URL(request.url);
+
+    if (!params.bandId) {
+        const bandId = url.searchParams.get('b') ?? DefaultBandId;
+        const searchParams = new URLSearchParams(url.searchParams);
+        searchParams.delete('b');
+
+        const legacyPath = url.pathname === '/' ? '' : url.pathname;
+        const search = searchParams.toString();
+        throw redirect(`/b/${encodeURIComponent(bandId)}${legacyPath}${search ? `?${search}` : ''}`);
+    }
+
+    return loadAppData(request, params.bandId);
 }
 
 export default function Root() {
@@ -89,7 +116,7 @@ function LeftNav({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Qu
     const { isMe, canEdit, user } = useFirestore(),
         navigate = useNavigate(),
         { pathname } = useLocation(),
-        isOnHomeRoute = pathname === '/',
+        isOnHomeRoute = pathname === '/' || /^\/b\/[^/]+\/?$/.test(pathname),
         cssBandName = 'text-md text-base-content flex items-center gap-2',
         { description } = band.data();
 
@@ -101,7 +128,7 @@ function LeftNav({ band, bands }: { band: QueryDocumentSnapshot<Band>; bands: Qu
                 details.removeAttribute('open');
             }
 
-            void navigate(`/?b=${b.id}&u=${u}`);
+            void navigate(`/b/${b.id}?u=${u}`);
         },
         [navigate]
     );
@@ -152,7 +179,7 @@ function NavbarContent({ band, bands }: { band: QueryDocumentSnapshot<Band>; ban
     const { isMe, canEdit, login } = useFirestore(),
         { navbarContent } = useNavbar(),
         location = useLocation(),
-        isOnSongsRoute = location.pathname === '/songs',
+        isOnSongsRoute = location.pathname === '/songs' || /^\/b\/[^/]+\/songs\/?$/.test(location.pathname),
         showLogin = isMe && !canEdit;
 
     const controls: React.ReactNode[] = [];

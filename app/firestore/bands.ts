@@ -3,7 +3,6 @@ import type { FirestoreDataConverter, QueryDocumentSnapshot } from 'firebase/fir
 export type Band = {
     id: string;
     description: string;
-    logo?: string;
 };
 
 export const bandConverter: FirestoreDataConverter<Band> = {
