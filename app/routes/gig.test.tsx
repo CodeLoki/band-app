@@ -131,6 +131,7 @@ describe('Gig route', () => {
             { initialEntries: ['/gig/gig-1'] }
         );
 
+        router.initialize();
         render(<RouterProvider router={router} />);
 
         await waitFor(() => {
