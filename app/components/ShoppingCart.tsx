@@ -139,8 +139,8 @@ export default function ShoppingCart<T extends { id: string }>({
     return (
         <div className="grid grid-cols-2 md:grid-cols-[1fr_1fr_auto] gap-4 min-h-[250px]">
             {/* Hidden inputs for form submission */}
-            {selectedItems.map((item, index) => (
-                <input key={`${item.id}-${index}`} type="hidden" name={name} value={String(item.id)} />
+            {selectedItems.map((item) => (
+                <input key={item.id} type="hidden" name={name} value={String(item.id)} />
             ))}
 
             {/* Available Items */}

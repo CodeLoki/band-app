@@ -294,7 +294,7 @@ function SyncedLyricsDisplay({ lines, duration, isPlaying, onPlaybackEnd }: Sync
         >
             {lines.map((line, index) => (
                 <div
-                    key={`${line.timeMs}-${index}`}
+                    key={`${line.timeMs}-${line.text}`}
                     ref={(el) => {
                         lineRefs.current[index] = el;
                     }}

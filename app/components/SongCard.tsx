@@ -230,9 +230,9 @@ export default function SongCard({ song, gigId }: SongCardProps) {
                     </div>
 
                     <div className="flex flex-wrap gap-2 justify-center mt-1">
-                        {notes.map((note, index) => (
+                        {notes.map((note) => (
                             <div
-                                key={`${song.id}-note-${index}`}
+                                key={`${song.id}-note-${note.text}`}
                                 className={`rounded-md badge badge-sm ${note.color} gap-1`}
                             >
                                 <note.icon className="h-3 w-3" />

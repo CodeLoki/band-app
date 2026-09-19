@@ -4,22 +4,8 @@ import {
     createMockSong,
     mockFirestoreContext,
     mockSetNavbarContent,
-    resetMockState,
-    setupActionContextMock,
-    setupFirebaseConfigMock,
-    setupFirestoreContextMock,
-    setupFirestoreMock,
-    setupNavbarContextMock,
-    setupNavigationContextMock
+    resetMockState
 } from '@/test/mocks';
-
-// Setup shared mocks - must be before imports that use them
-setupFirestoreMock();
-setupFirebaseConfigMock();
-setupFirestoreContextMock();
-setupNavbarContextMock();
-setupActionContextMock();
-setupNavigationContextMock();
 
 // Mock jsPDF - use vi.hoisted to create mock functions that can be used in vi.mock
 const { mockPdfMethods, MockJsPDF } = vi.hoisted(() => {
@@ -145,6 +131,7 @@ describe('Gig route', () => {
             { initialEntries: ['/gig/gig-1'] }
         );
 
+        router.initialize();
         render(<RouterProvider router={router} />);
 
         await waitFor(() => {

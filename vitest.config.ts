@@ -6,7 +6,7 @@ export default defineConfig({
     plugins: [react()],
     resolve: {
         alias: {
-            '@': path.resolve(__dirname, './app')
+            '@': path.resolve(import.meta.dirname, './app')
         }
     },
     test: {
@@ -24,7 +24,7 @@ export default defineConfig({
         },
         deps: {
             optimizer: {
-                web: {
+                client: {
                     include: ['react-icons']
                 }
             }
