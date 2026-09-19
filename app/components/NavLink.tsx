@@ -1,4 +1,4 @@
-import { Link, type LinkProps, useSearchParams } from 'react-router';
+import { Link, type LinkProps, useLocation, useSearchParams } from 'react-router';
 
 /**
  * Helper function to add query parameters to a URL.
@@ -10,6 +10,14 @@ export function addQueryParamsToUrl(url: string, searchParams: URLSearchParams):
 
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}${search}`;
+}
+
+export function addBandPrefixToUrl(url: string, pathname: string): string {
+    const match = pathname.match(/^\/b\/[^/]+(?:\/|$)/);
+    if (!match || !url.startsWith('/') || url.startsWith('/b/')) return url;
+
+    const bandPrefix = match[0].replace(/\/$/, '');
+    return `${bandPrefix}${url}`;
 }
 
 /**
@@ -28,12 +36,13 @@ export interface NavLinkProps extends LinkProps {
  * A link designed to preserve current URL search parameters by default.
  */
 export default function NavLink({ to, preserveSearch = true, ...props }: NavLinkProps) {
-    const [searchParams] = useSearchParams();
+    const [searchParams] = useSearchParams(),
+        { pathname } = useLocation();
 
     if (!preserveSearch || typeof to !== 'string') {
         return <Link to={to} {...props} />;
     }
 
-    const toWithParams = addQueryParamsToUrl(to, searchParams);
+    const toWithParams = addQueryParamsToUrl(addBandPrefixToUrl(to, pathname), searchParams);
     return <Link to={toWithParams} {...props} />;
 }

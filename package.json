@@ -8,7 +8,8 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "tsc && vite build",
+        "build": "tsc && vite build && pnpm generate:band-pages",
+        "generate:band-pages": "node scripts/generate-band-pages.mjs",
         "preview": "vite preview",
         "start": "serve dist -s",
         "typecheck": "tsc",
@@ -24,7 +25,6 @@
     "dependencies": {
         "clsx": "^2.1.1",
         "daisyui": "^5.7.42",
-        "dompurify": "^3.4.15",
         "firebase": "^12.19.0",
         "jspdf": "^4.2.1",
         "react": "^19.3.0",

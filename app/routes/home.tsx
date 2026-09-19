@@ -15,8 +15,14 @@ interface HomeLoaderData extends Pick<AppData, 'band'> {
     gigs: QueryDocumentSnapshot<Gig>[];
 }
 
-export async function clientLoader({ request }: { request: Request }) {
-    const { band } = await loadAppData(request),
+export async function clientLoader({
+    request,
+    params
+}: {
+    request: Request;
+    params: Record<string, string | undefined>;
+}) {
+    const { band } = await loadAppData(request, params.bandId),
         gigsSnapshot = await getDocs(
             query(collection(db, 'gigs'), where('band', '==', band.ref)).withConverter(gigConverter)
         );
@@ -61,16 +67,13 @@ export default function Home() {
         <>
             <title>{pageTitle}</title>
             <div className="flex flex-col gap-4 m-4 sm:flex-row">
-                {bandData.logo ? (
-                    <SvgLogo
-                        band={band}
-                        className={clsx(
-                            'shrink-0 fill-slate-200 w-full',
-                            '[&_svg]:max-h-[40vh] [&_svg]:mx-auto',
-                            'sm:w-1/2 sm:[&_svg]:max-h-[70vh]'
-                        )}
-                    />
-                ) : null}
+                <SvgLogo
+                    band={band}
+                    className={clsx(
+                        'shrink-0 fill-slate-200 w-full max-h-[40vh] mx-auto object-contain',
+                        'sm:w-1/2 sm:max-h-[70vh]'
+                    )}
+                />
 
                 <ul className="list w-full bg-base-100 rounded-box shadow-md">
                     <li className="p-4 text-lg text-accent font-bold">{bandData.description}</li>

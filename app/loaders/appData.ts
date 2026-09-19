@@ -17,15 +17,17 @@ async function loadBands(): Promise<QueryDocumentSnapshot<Band>[]> {
     }
 
     const bandsSnapshot = await getDocs(collection(db, 'bands').withConverter(bandConverter));
-    bandsCache = bandsSnapshot.docs;
+    bandsCache = bandsSnapshot.docs.sort((left, right) =>
+        (left.data().description ?? '').localeCompare(right.data().description ?? '')
+    );
     return bandsCache;
 }
 
 export const DefaultBandId = 'qRphnEOTg8GeDc0dQa4K';
 
-export async function loadAppData(request: Request): Promise<AppData> {
+export async function loadAppData(request: Request, bandId?: string): Promise<AppData> {
     const url = new URL(request.url),
-        b = url.searchParams.get('b') ?? DefaultBandId,
+        b = bandId ?? url.searchParams.get('b') ?? DefaultBandId,
         u = url.searchParams.get('u') as User | null;
 
     // Load bands from cache or fetch if not cached

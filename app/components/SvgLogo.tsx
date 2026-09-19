@@ -1,31 +1,22 @@
 import clsx from 'clsx';
-import DOMPurify from 'dompurify';
 import type { QueryDocumentSnapshot } from 'firebase/firestore';
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import type { Band } from '@/firestore/bands';
 
 export default function SvgLogo({ band, className }: { band: QueryDocumentSnapshot<Band>; className?: string }) {
-    const { logo } = band.data();
+    const { description } = band.data();
+    const logoPath = `/logos/${encodeURIComponent(band.id)}.svg`;
+    const [hasLogo, setHasLogo] = useState(true);
 
-    const sanitizedSvg = useMemo(
-        () =>
-            logo
-                ? DOMPurify.sanitize(logo, {
-                      USE_PROFILES: { svg: true, svgFilters: true }
-                  })
-                : null,
-        [logo]
-    );
+    useEffect(() => {
+        if (logoPath) setHasLogo(true);
+    }, [logoPath]);
 
-    if (!sanitizedSvg) {
+    if (!hasLogo) {
         return null;
     }
 
     return (
-        <div
-            className={clsx('fill-current', className)}
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: SVG is sanitized with DOMPurify
-            dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
-        />
+        <img src={logoPath} alt={`${description} logo`} className={clsx(className)} onError={() => setHasLogo(false)} />
     );
 }

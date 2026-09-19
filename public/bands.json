@@ -1,0 +1,22 @@
+{
+    "bands": [
+        {
+            "id": "h5u5HWubdsLZdh5asOWn",
+            "name": "Planet X",
+            "logo": "/logos/h5u5HWubdsLZdh5asOWn.svg"
+        },
+        {
+            "id": "qRphnEOTg8GeDc0dQa4K",
+            "name": "convertibleJERK",
+            "logo": "/logos/qRphnEOTg8GeDc0dQa4K.svg"
+        },
+        {
+            "id": "HnHyYrrIItDGdjlLZUVb",
+            "name": "Bastards of Old"
+        },
+        {
+            "id": "WZQJCEVW1SGxKSCrpdWq",
+            "name": "Group W Bench"
+        }
+    ]
+}

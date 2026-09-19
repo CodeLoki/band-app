@@ -36,7 +36,7 @@ export async function clientLoader({
     request: Request;
     params: Record<string, string | undefined>;
 }) {
-    const appData = await loadAppData(request);
+    const appData = await loadAppData(request, params.bandId);
 
     const { songId } = params;
     if (!songId) {

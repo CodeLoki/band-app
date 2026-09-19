@@ -2,11 +2,11 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-    themes: dim, dracula, cupcake;
+    themes: dim, cupcake;
 }
 
 @plugin "daisyui/theme" {
-    name: "dracula";
+    name: "band";
     default: true;
     prefersdark: true;
     color-scheme: "dark";
