@@ -69,6 +69,10 @@ for (const band of manifest.bands) {
         html = setMeta(html, 'property="og:image:width"', '700');
         html = setMeta(html, 'property="og:image:height"', '700');
         html = setMeta(html, 'name="twitter:image"', imageUrl);
+        html = html.replace(
+            '</head>',
+            `    <link rel="icon" href="${escapeHtml(band.logo)}" type="image/svg+xml" />\n  </head>`
+        );
     } else {
         html = removeMeta(html, 'property="og:image"');
         html = removeMeta(html, 'property="og:image:type"');
