@@ -17,110 +17,68 @@ import { DrumPad, Instrument, type Song, StartsWith } from '@/firestore/songs';
  * Mutable context state for FirestoreContext mock.
  * Modify these values in beforeEach() to control behavior per test.
  */
-export const mockFirestoreContext = {
-    canEdit: false,
-    isMe: true,
-    user: 'me' as const
-};
+const mockState = vi.hoisted(() => ({
+    firestoreContext: {
+        canEdit: false,
+        isMe: true,
+        user: 'me' as const
+    },
+    setNavbarContent: vi.fn()
+}));
 
-/**
- * Mock function for NavbarContext's setNavbarContent
- */
-export const mockSetNavbarContent = vi.fn();
+export const mockFirestoreContext = mockState.firestoreContext;
+export const mockSetNavbarContent = mockState.setNavbarContent;
 
-// =============================================================================
-// vi.mock() Setup Functions
-// Call these at the top of your test file, before any imports that use them
-// =============================================================================
+vi.mock('firebase/firestore', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('firebase/firestore')>();
+    return {
+        ...actual,
+        getFirestore: vi.fn(),
+        collection: vi.fn(),
+        getDocs: vi.fn(),
+        doc: vi.fn(),
+        getDoc: vi.fn(),
+        updateDoc: vi.fn()
+    };
+});
 
-/**
- * Sets up Firebase/Firestore mock.
- * Must be called before importing any code that uses firebase/firestore.
- *
- * @example
- * setupFirestoreMock();
- * // Then import your component
- * import MyComponent from './MyComponent';
- */
-export function setupFirestoreMock() {
-    vi.mock('firebase/firestore', async (importOriginal) => {
-        const actual = await importOriginal<typeof import('firebase/firestore')>();
-        return {
-            ...actual,
-            getFirestore: vi.fn(),
-            collection: vi.fn(),
-            getDocs: vi.fn(),
-            doc: vi.fn(),
-            getDoc: vi.fn(),
-            updateDoc: vi.fn()
-        };
-    });
-}
+vi.mock('@/config/firebase', () => ({
+    db: {},
+    auth: {}
+}));
 
-/**
- * Sets up Firebase config mock.
- * Must be called before importing any code that uses @/config/firebase.
- */
-export function setupFirebaseConfigMock() {
-    vi.mock('@/config/firebase', () => ({
-        db: {},
-        auth: {}
-    }));
-}
+vi.mock('@/contexts/Firestore', () => ({
+    useFirestore: () => ({
+        canEdit: mockState.firestoreContext.canEdit,
+        isMe: mockState.firestoreContext.isMe,
+        user: mockState.firestoreContext.user
+    })
+}));
 
-/**
- * Sets up FirestoreContext mock using the shared mockFirestoreContext object.
- * Modify mockFirestoreContext values in tests to control behavior.
- */
-export function setupFirestoreContextMock() {
-    vi.mock('@/contexts/Firestore', () => ({
-        useFirestore: () => ({
-            canEdit: mockFirestoreContext.canEdit,
-            isMe: mockFirestoreContext.isMe,
-            user: mockFirestoreContext.user
-        })
-    }));
-}
+vi.mock('@/contexts/NavbarContext', () => ({
+    useNavbar: () => ({
+        setNavbarContent: mockState.setNavbarContent
+    })
+}));
 
-/**
- * Sets up NavbarContext mock using the shared mockSetNavbarContent function.
- */
-export function setupNavbarContextMock() {
-    vi.mock('@/contexts/NavbarContext', () => ({
-        useNavbar: () => ({
-            setNavbarContent: mockSetNavbarContent
-        })
-    }));
-}
+vi.mock('@/contexts/ActionContext', () => ({
+    ActionMode: {
+        Perform: 'perform',
+        Practice: 'practice',
+        Rehearse: 'rehearse',
+        Edit: 'edit',
+        Flag: 'flag'
+    },
+    useActionContext: () => ({
+        mode: 'perform'
+    })
+}));
 
-/**
- * Sets up ActionContext mock with default perform mode.
- */
-export function setupActionContextMock() {
-    vi.mock('@/contexts/ActionContext', () => ({
-        ActionMode: {
-            Perform: 'perform',
-            Practice: 'practice',
-            Rehearse: 'rehearse',
-            Edit: 'edit',
-            Flag: 'flag'
-        },
-        useActionContext: () => ({
-            mode: 'perform'
-        })
-    }));
-}
-
-/**
- * Sets up NavigationContext mock.
- */
-export function setupNavigationContextMock() {
-    vi.mock('@/contexts/NavigationContext', () => ({
-        useNavigation: () => ({
-            navigateWithParams: vi.fn()
-        })
-    }));
-}
+vi.mock('@/contexts/NavigationContext', () => ({
+    useNavigation: () => ({
+        navigateWithParams: vi.fn()
+    })
+}));
 
 // =============================================================================
 // Mock Data Factories

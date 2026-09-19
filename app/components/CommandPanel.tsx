@@ -64,7 +64,7 @@ export default function CommandPanel({ handleDelete, showReset = false }: Comman
 
     return (
         <div
-            className="sticky bottom-0 z-20 mt-6 border-t border-base-300 bg-neutral/95 pt-4 pb-2 shadow-[0_-4px_10px_rgba(0,0,0,0.15)] backdrop-blur"
+            className="sticky bottom-0 z-20 -mx-6 -mb-6 mt-6 rounded-b-box border-t border-base-300 bg-neutral/95 px-8 pt-4 pb-4 shadow-[0_-4px_10px_rgba(0,0,0,0.15)] backdrop-blur"
             role="toolbar"
             aria-label="Command Toolbar"
             data-testid="command-panel"
